@@ -47,12 +47,12 @@ private fun ApplicationRootActivitiesFarm.viewModels() = createViewModelsFarm {
             supply()
         )
     }
-    produceViewModelWithSavedState {
+    produceViewModelWithSavedState { savedStateHandle ->
         MainViewModelWithSavedStateHandle(
             supply("SomeDependency"),
             supply("SomeDependency2"),
             supply(),
-            it
+            savedStateHandle
         )
     }
 }
