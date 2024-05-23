@@ -13,9 +13,9 @@
         android:theme="@style/Theme.Kompost"
         android:name=".KompostSampleApplication"
         tools:targetApi="31">
-        <activity android:name=".MainActivity" />
+        <activity android:name=".presentation.activity.MainActivity" />
         <activity
-            android:name=".ComposeActivity"
+            android:name=".presentation.activity.ComposeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
