@@ -15,5 +15,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Kompost"
 include(":sample")
-include(":kompost")
-include(":kompost-lifecycle")
+include(":core")
+include(":lifecycle")
