@@ -12,33 +12,39 @@ import com.dakhel.kompost.produce
 import com.dakhel.kompost.supply
 
 /**
- * An extension property for the `Application` class.
- * It generates a `ProduceKey` for the `ApplicationFarm` using the class of the application and a unique identifier.
+ * An extension property for the [Application] class.
+ * It generates a [ProduceKey] for the [ApplicationFarm] using the class of the application and [applicationFarmId].
+ *
+ * @receiver The [Application] instance for which the [ProduceKey] is generated.
+ * @return The [ProduceKey] for the [ApplicationFarm].
  */
 internal val Application.applicationFarmProduceKey: ProduceKey
     get() = ProduceKey(this::class, tag = applicationFarmId)
 
 /**
- * An extension property for the `Application` class.
- * It generates a unique identifier for the `ApplicationFarm` using the name of the `ApplicationFarm` class and the hash code of the application.
+ * An extension property for the [Application] class.
+ * It generates a unique identifier for the [ApplicationFarm] using the name of the [ApplicationFarm] class and the hash code of the application.
+ *
+ * @receiver The [Application] instance for which the unique identifier is generated.
+ * @return The unique identifier for the [ApplicationFarm].
  */
 private val Application.applicationFarmId: String
     get() = "${ApplicationFarmName}.${this.hashCode()}"
 
 /**
- * A private constant that holds the name of the `ApplicationFarm` class.
- * This name is used as a tag when generating a unique identifier for the `ApplicationFarm`.
+ * A private constant that holds the name of the [ApplicationFarm] class.
+ * This name is used as a tag when generating a unique identifier for the [ApplicationFarm].
  */
 private const val ApplicationFarmName = "ApplicationFarm"
 
 /**
- * `ApplicationFarm` is a class that represents a farm specific to an application.
- * It is constructed internally with an `Application` instance and a `GlobalFarm` instance as parents.
- * It delegates its `Producer` responsibilities to a `Farm` instance created with the application's unique farm ID and the parent `GlobalFarm`.
+ * [ApplicationFarm] is a class that represents a farm specific to an application.
+ * It is constructed internally with an [Application] instance and a [GlobalFarm] instance as parents.
+ * It delegates its [Producer] responsibilities to a [Farm] instance created with the application's unique farm ID and the parent [GlobalFarm].
  *
- * @param application The `Application` instance for which this `ApplicationFarm` is created.
- * @param parent The `GlobalFarm` instance that acts as the parent of this `ApplicationFarm`.
- * @constructor Creates an `ApplicationFarm` instance with the provided `Application` and `GlobalFarm`.
+ * @param application The [Application] instance for which this [ApplicationFarm] is created.
+ * @param parent The [GlobalFarm] instance that acts as the parent of this [ApplicationFarm].
+ * @constructor Creates an [ApplicationFarm] instance with the provided [Application] and [GlobalFarm].
  */
 class ApplicationFarm internal constructor(
     application: Application,
@@ -46,46 +52,46 @@ class ApplicationFarm internal constructor(
 ) : Producer by Farm(id = application.applicationFarmId, parent = parent)
 
 /**
- * An extension function for the `Application` class.
- * It tries to get the `ApplicationFarm` for the application from the `GlobalFarm`.
- * If the `ApplicationFarm` does not exist, it returns null.
+ * An extension function for the [Application] class.
+ * It tries to get the [ApplicationFarm] for the application from the [GlobalFarm].
+ * If the [ApplicationFarm] does not exist, it returns null.
  *
- * @return The `ApplicationFarm` for the application, or null if it does not exist.
+ * @return The [ApplicationFarm] for the application, or null if it does not exist.
  */
 fun Application.applicationFarmOrNull(): ApplicationFarm? =
     farmOrNull(globalFarm(), applicationFarmProduceKey)
 
 /**
- * An extension function for the `Application` class.
- * It gets the `ApplicationFarm` for the application.
- * If the `ApplicationFarm` does not exist, it throws an error.
+ * An extension function for the [Application] class.
+ * It gets the [ApplicationFarm] for the application.
+ * If the [ApplicationFarm] does not exist, it throws an error.
  *
- * @return The `ApplicationFarm` for the application.
- * @throws IllegalStateException If the `ApplicationFarm` does not exist.
+ * @return The [ApplicationFarm] for the application.
+ * @throws IllegalStateException If the [ApplicationFarm] does not exist.
  */
 fun Application.applicationFarm(): ApplicationFarm {
     return applicationFarmOrNull() ?: error("Application farm not created")
 }
 
 /**
- * An exception that is thrown when an attempt is made to create an `ApplicationFarm` that already exists.
+ * An exception that is thrown when an attempt is made to create an [ApplicationFarm] that already exists.
  */
 class ApplicationFarmAlreadyExistsException :
     IllegalStateException("Application farm already exists")
 
 /**
- * An extension function for the `Application` class.
- * It creates an `ApplicationFarm` for the application.
+ * An extension function for the [Application] class.
+ * It creates an [ApplicationFarm] for the application.
  *
- * The function first retrieves the `GlobalFarm` instance.
- * If an `ApplicationFarm` already exists for the application, it throws an `ApplicationFarmAlreadyExistsException`.
- * Otherwise, it creates a new `ApplicationFarm` with the application and the `GlobalFarm` as parents.
- * It then applies the `productionScope` to the `ApplicationFarm` and produces the application context.
- * Finally, it produces the `ApplicationFarm` in the `GlobalFarm` with the application's unique farm ID as the key.
+ * The function first retrieves the [GlobalFarm] instance.
+ * If an [ApplicationFarm] already exists for the application, it throws an [ApplicationFarmAlreadyExistsException].
+ * Otherwise, it creates a new [ApplicationFarm] with the application and the [GlobalFarm] as parents.
+ * It then applies the [productionScope] to the [ApplicationFarm] and produces the application context.
+ * Finally, it produces the [ApplicationFarm] in the [GlobalFarm] with the application's unique farm ID as the key.
  *
- * @param productionScope A lambda with receiver of type `ApplicationFarm`. This is applied to the `ApplicationFarm` after it is created. Default is an empty lambda.
- * @return The created `ApplicationFarm`.
- * @throws ApplicationFarmAlreadyExistsException If an `ApplicationFarm` already exists for the application.
+ * @param productionScope A lambda with receiver of type [ApplicationFarm]. This is applied to the [ApplicationFarm] after it is created. Default is an empty lambda.
+ * @return The created [ApplicationFarm].
+ * @throws ApplicationFarmAlreadyExistsException If an [ApplicationFarm] already exists for the application.
  */
 fun Application.createApplicationFarm(
     productionScope: ApplicationFarm.() -> Unit = {}
@@ -97,7 +103,7 @@ fun Application.createApplicationFarm(
     }
     return ApplicationFarm(this, globalFarm)
         .apply {
-            // Produces the application context in the `ApplicationFarm` for convenience.
+            // Produces the application context in the [ApplicationFarm] for convenience.
             produceApplicationContext(applicationContext)
             productionScope()
         }
@@ -108,19 +114,19 @@ fun Application.createApplicationFarm(
 }
 
 /**
- * A private constant that holds the tag for the application context in `Kompost`.
- * This tag is used when producing and supplying the application context in the `ApplicationFarm`.
+ * A private constant that holds the tag for the application context in 'Kompost'.
+ * This tag is used when producing and supplying the application context in the [ApplicationFarm].
  */
 private const val ApplicationContextTag = "Kompost:ApplicationContextTag"
 
 /**
- * A private extension function for the `ApplicationFarm` class.
- * It produces the application context in the `ApplicationFarm`.
+ * A private extension function for the [ApplicationFarm] class.
+ * It produces the application context in the [ApplicationFarm].
  *
- * The function uses the `ApplicationContextTag` as the key to produce the application context.
- * The produced value is the provided `applicationContext`.
+ * The function uses the [ApplicationContextTag] as the key to produce the application context.
+ * The produced value is the provided [applicationContext].
  *
- * @param applicationContext The `Context` instance that represents the application context.
+ * @param applicationContext The [Context] instance that represents the application context.
  */
 private fun ApplicationFarm.produceApplicationContext(
     applicationContext: Context
@@ -129,40 +135,40 @@ private fun ApplicationFarm.produceApplicationContext(
 }
 
 /**
- * An extension function for the `Producer` interface.
- * It supplies the application context that has been produced with the creation of the `ApplicationFarm`
+ * An extension function for the [Producer] interface.
+ * It supplies the application context that has been produced with the creation of the [ApplicationFarm]
  *
- * The function uses the `ApplicationContextTag` as the key to supply the application context.
+ * The function uses the [ApplicationContextTag] as the key to supply the application context.
  *
- * @return The `Context` instance that represents the application context.
+ * @return The [Context] instance that represents the application context.
  */
 fun Producer.supplyApplicationContext(): Context = supply(ApplicationContextTag)
 
 /**
- * An inline function for the `Application` class.
- * It supplies a value from the `ApplicationFarm` for the application.
+ * An inline function for the [Application] class.
+ * It supplies a value from the [ApplicationFarm] for the application.
  *
- * The function first tries to get the `ApplicationFarm` for the application.
- * If the `ApplicationFarm` does not exist, it throws an error.
- * Otherwise, it supplies the value from the `ApplicationFarm` using the provided `tag`.
+ * The function first tries to get the [ApplicationFarm] for the application.
+ * If the [ApplicationFarm] does not exist, it throws an error.
+ * Otherwise, it supplies the value from the [ApplicationFarm] using the provided [tag].
  *
- * @param tag The tag used to supply the value from the `ApplicationFarm`. Default is null.
+ * @param tag The tag used to supply the value from the [ApplicationFarm]. Default is null.
  * @return The supplied value.
- * @throws IllegalStateException If the `ApplicationFarm` does not exist.
+ * @throws IllegalStateException If the [ApplicationFarm] does not exist.
  */
 inline fun <reified T> Application.applicationSupply(
     tag: String? = null
 ): T = applicationFarmOrNull()?.supply(tag) ?: error("Application farm not created")
 
 /**
- * An inline function for the `Application` class.
- * It lazily supplies a value from the `ApplicationFarm` for the application.
+ * An inline function for the [Application] class.
+ * It lazily supplies a value from the [ApplicationFarm] for the application.
  *
- * The function uses the `applicationSupply` function to supply the value.
+ * The function uses the [applicationSupply] function to supply the value.
  * The supplied value is cached, so it is only supplied once.
  *
- * @param tag The tag used to supply the value from the `ApplicationFarm`. Default is null.
- * @return A `Lazy` instance that represents the lazily supplied value.
+ * @param tag The tag used to supply the value from the [ApplicationFarm]. Default is null.
+ * @return A [Lazy] instance that represents the lazily supplied value.
  */
 inline fun <reified T> Application.lazyApplicationSupply(
     tag: String? = null

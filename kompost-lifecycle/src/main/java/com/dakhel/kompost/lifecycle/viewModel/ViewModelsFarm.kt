@@ -20,9 +20,10 @@ import com.dakhel.kompost.lifecycle.activity.rootActivitiesFarm
 import kotlin.reflect.KClass
 
 /**
- * Extension property for KClass<out ViewModel> to get a ProduceKey.
- * This property generates a ProduceKey for the ViewModel KClass.
+ * An extension property for KClass<out ViewModel> to get a ProduceKey.
+ * It generates a ProduceKey for the ViewModel KClass.
  *
+ * @receiver The KClass of the ViewModel.
  * @return The generated ProduceKey.
  */
 private val KClass<out ViewModel>.viewModelProduceKey: ProduceKey
@@ -31,36 +32,37 @@ private val KClass<out ViewModel>.viewModelProduceKey: ProduceKey
     }
 
 /**
- * Extension property for ApplicationRootActivitiesFarm to get a ProduceKey.
- * This property generates a ProduceKey for the ApplicationRootActivitiesFarm with a tag that includes the id and the ViewModelsFarmName.
+ * An extension property for [ApplicationRootActivitiesFarm] to get a [ProduceKey].
+ * It generates a [ProduceKey] for the [ApplicationRootActivitiesFarm] with the class of the [ApplicationRootActivitiesFarm] and the [viewModelsFarmId] as a tag
  *
+ * @receiver The [ApplicationRootActivitiesFarm] for which the ProduceKey is generated.
  * @return The generated ProduceKey.
  */
 private val ApplicationRootActivitiesFarm.viewModelsFarmProduceKey: ProduceKey
     get() = ProduceKey(kClass = this::class, tag = viewModelsFarmId)
 
 /**
- * This is an extension property for `ApplicationRootActivitiesFarm` to generate a unique identifier for `ViewModelsFarm`.
- * This property concatenates the `id` of the `ApplicationRootActivitiesFarm` and the constant `ViewModelsFarmName` to form a unique identifier.
- * This identifier is used when creating a `ProduceKey` for `ViewModelsFarm`.
+ * This is an extension property for [ApplicationRootActivitiesFarm] to generate a unique identifier for [ViewModelsFarm].
+ * This property concatenates the `id` of the [ApplicationRootActivitiesFarm] and the constant [ViewModelsFarmName] to form a unique identifier.
+ * This identifier is used when creating a [ProduceKey] for [ViewModelsFarm].
  */
 private val ApplicationRootActivitiesFarm.viewModelsFarmId: String
     get() = "$id${ViewModelsFarmName}"
 
 /**
- * A constant that holds the name of the `ViewModelsFarm` class.
- * This name is used as a tag when generating a `ProduceKey` for the `ViewModelsFarm`.
+ * A constant that holds the name of the [ViewModelsFarm] class.
+ * This name is used as a tag when generating a [ProduceKey] for the [ViewModelsFarm].
  */
 private const val ViewModelsFarmName = "ViewModelsFarm"
 
 /**
- * The `ViewModelsFarm` class is responsible for managing the lifecycle of ViewModel dependencies in the application.
- * It is a producer of ViewModels and uses the `Farm` class to manage the production of ViewModels.
- * The `ViewModelsFarm` class is created with an id and an instance of `ApplicationRootActivitiesFarm`.
+ * The [ViewModelsFarm] class is responsible for managing the lifecycle of ViewModel dependencies in the application.
+ * It is a producer of ViewModels and uses the [Farm] class to manage the production of ViewModels.
+ * The [ViewModelsFarm] class is created with an id and an instance of [ApplicationRootActivitiesFarm].
  *
- * @param id The unique identifier for this `ViewModelsFarm`.
- * @param applicationFarm The `ApplicationRootActivitiesFarm` that this `ViewModelsFarm` belongs to.
- * @constructor Creates a new instance of `ViewModelsFarm`.
+ * @param id The unique identifier for this [ViewModelsFarm].
+ * @param applicationFarm The [ApplicationRootActivitiesFarm] that this [ViewModelsFarm] belongs to.
+ * @constructor Creates a new instance of [ViewModelsFarm].
  */
 class ViewModelsFarm internal constructor(
     id: String,

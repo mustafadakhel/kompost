@@ -1,21 +1,21 @@
 package com.dakhel.kompost
 
 /**
- * A set of extension functions for the `Producer` interface.
+ * A set of extension functions for the [Producer] interface.
  * These functions are used to produce a constructor with a varying number of parameters.
- * The parameters are supplied from the `Producer`.
+ * The parameters are supplied from the [Producer].
  *
- * Each function takes a `constructor` parameter, which is a function that takes a certain number of parameters and returns an instance of `R`.
- * The `constructor` function is called with the supplied parameters to produce the instance of `R`.
+ * Each function takes a [constructor] parameter, which is a function that takes a certain number of parameters and returns an instance of [R].
+ * The [constructor] function is called with the supplied parameters to produce the instance of [R].
  *
  * The functions use inline reified type parameters to infer the types of the parameters and the return type.
  * This allows the functions to work with any types.
  *
- * The functions use the `produce` function to produce the instance of `R`.
- * The `produce` function is called with a lambda that calls the `constructor` function with the supplied parameters.
+ * The functions use the [produce] function to produce the instance of [R].
+ * The [produce] function is called with a lambda that calls the [constructor] function with the supplied parameters.
  *
- * The functions use the `supply` function to supply the parameters for the `constructor` function.
- * The `supply` function is called with no arguments, so it supplies the parameters in the order they are declared.
+ * The functions use the [supply] function to supply the parameters for the [constructor] function.
+ * The [supply] function is called with no arguments, so it supplies the parameters in the order they are declared.
  *
  * The functions are defined for constructors with up to 20 parameters.
  */
