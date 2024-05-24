@@ -9,13 +9,13 @@ import com.dakhel.kompost.lifecycle.activity.activitySupply
 import com.dakhel.kompost.lifecycle.viewModel.lazyViewModel
 
 class MainActivity : ComponentActivity() {
-    private val someActivityDependency = activitySupply<SomeActivityDependency>()
+    private lateinit var someActivityDependency: SomeActivityDependency
     private val viewModel by lazyViewModel<MainViewModel>()
     private val viewModelWithSavedStateHandle by lazyViewModel<MainViewModelWithSavedStateHandle>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        someActivityDependency
+        someActivityDependency = activitySupply<SomeActivityDependency>()
         viewModel.log()
         viewModelWithSavedStateHandle.log()
     }

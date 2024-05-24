@@ -25,12 +25,12 @@ android {
 }
 dependencies {
 
-    testImplementation("io.mockk:mockk:1.12.0")
+    testImplementation("io.mockk:mockk:1.13.11")
 
-    testImplementation("org.robolectric:robolectric:4.6.1")
+    testImplementation("org.robolectric:robolectric:4.12.2")
 
-    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.0")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.8.0")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:2.0.0")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.0")
 }

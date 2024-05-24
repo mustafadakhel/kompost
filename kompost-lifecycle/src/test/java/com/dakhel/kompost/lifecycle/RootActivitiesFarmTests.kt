@@ -24,7 +24,7 @@ import io.mockk.mockkStatic
 import io.mockk.verify
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.Robolectric
+import org.robolectric.Robolectric.buildActivity
 import org.robolectric.annotation.Config
 import kotlin.test.AfterTest
 import kotlin.test.assertNotNull
@@ -76,8 +76,8 @@ class RootActivitiesFarmTests {
 
     @Test
     fun `ActivitiesFarm should return different instances for different activities`() {
-        val activityController = Robolectric.buildActivity(ComponentActivity::class.java)
-        val activityController2 = Robolectric.buildActivity(ComponentActivity::class.java)
+        val activityController = buildActivity(ComponentActivity::class.java)
+        val activityController2 = buildActivity(ComponentActivity::class.java)
         val activity = activityController.get()
         val activity2 = activityController2.get()
 

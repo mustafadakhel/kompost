@@ -93,8 +93,8 @@ class RootFragmentsFarmTests {
             .moveToState(Lifecycle.State.STARTED)
             .moveToState(Lifecycle.State.RESUMED)
 
-        val someDependency = fragmentScenario.onFragment {
-            it.fragmentSupply<SomeDependency>()
+        val someDependency = fragmentScenario.withFragmentNullable {
+            fragmentSupply<SomeDependency>()
         }
 
         fragmentScenario2
@@ -102,8 +102,8 @@ class RootFragmentsFarmTests {
             .moveToState(Lifecycle.State.STARTED)
             .moveToState(Lifecycle.State.RESUMED)
 
-        val newSomeDependency = fragmentScenario2.onFragment {
-            it.fragmentSupply<SomeDependency>()
+        val newSomeDependency = fragmentScenario2.withFragmentNullable {
+            fragmentSupply<SomeDependency>()
         }
 
         assertNotSame(

@@ -105,7 +105,7 @@ class FragmentScopedFarmAlreadyExistsException :
  */
 fun Fragment.createFragmentScopedFarm(
     fragmentsFarm: ApplicationRootFragmentsFarm = rootFragmentsFarm(),
-    productionScope: FragmentScopedFarm.() -> Unit
+    productionScope: FragmentScopedFarm.() -> Unit = {}
 ): FragmentScopedFarm {
     if (fragmentScopedFarmOrNull(fragmentsFarm) != null)
         throw FragmentScopedFarmAlreadyExistsException()

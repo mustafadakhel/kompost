@@ -6,8 +6,8 @@ import androidx.lifecycle.LifecycleOwner
 import com.dakhel.kompost.Farm
 import com.dakhel.kompost.ProduceKey
 import com.dakhel.kompost.Producer
-import com.dakhel.kompost.application.ApplicationFarm
 import com.dakhel.kompost.farmOrNull
+
 /**
  * An extension property for [ComponentActivity] to get the [ProduceKey] for the [ActivityScopedFarm].
  * The [ProduceKey] is created using the class of the [ComponentActivity] and the farm ID as the tag.
@@ -95,7 +95,7 @@ internal fun ComponentActivity.createActivityScopedFarm(
     activitiesFarm: ApplicationRootActivitiesFarm = rootActivitiesFarm(),
     productionScope: ActivityScopedFarm.() -> Unit = {}
 ): ActivityScopedFarm {
-    if (activityScopedFarmOrNull() != null)
+    if (activityScopedFarmOrNull(activitiesFarm) != null)
         throw ActivityScopedFarmAlreadyExistsException()
     return ActivityScopedFarm(this, activitiesFarm)
         .apply(productionScope)
