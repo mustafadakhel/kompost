@@ -45,6 +45,10 @@ dependencies {
 
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.22")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.22")
+
+    val fragment_version = "1.7.1"
+
+    debugImplementation("androidx.fragment:fragment-testing:$fragment_version")
 }
 
 kapt {

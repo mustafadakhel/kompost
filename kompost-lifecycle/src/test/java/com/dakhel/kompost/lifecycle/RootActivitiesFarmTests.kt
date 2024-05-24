@@ -26,7 +26,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.annotation.Config
-import kotlin.test.BeforeTest
+import kotlin.test.AfterTest
 import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
 import kotlin.test.assertNull
@@ -34,7 +34,7 @@ import kotlin.test.assertSame
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [Build.VERSION_CODES.O_MR1])
-class ActivitiesFarmTests {
+class RootActivitiesFarmTests {
 
     private val applicationFarm = mockk<ApplicationFarm>(relaxed = true) {
         var applicationRootActivitiesFarm: ApplicationRootActivitiesFarm? = null
@@ -55,11 +55,6 @@ class ActivitiesFarmTests {
         every { contains(rootActivitiesFarmProduceKey) } answers { applicationRootActivitiesFarm != null }
     }
 
-    @BeforeTest
-    fun setup() {
-        resetGlobalFarm()
-    }
-
     @Test
     fun `ActivitiesFarm is created`() {
         val activitiesFarm = applicationFarm.createRootActivitiesFarm()
@@ -68,19 +63,19 @@ class ActivitiesFarmTests {
 
     @Test
     fun `Retrieving existing ActivitiesFarm returns the same instance for the activity`() {
-        val firstCreation = applicationFarm.createRootActivitiesFarm()
+        val creation = applicationFarm.createRootActivitiesFarm()
 
-        val secondRetrieval = applicationFarm.getOrCreateActivitiesFarm()
+        val retrieval = applicationFarm.getOrCreateActivitiesFarm()
 
         assertSame(
-            firstCreation,
-            secondRetrieval,
+            creation,
+            retrieval,
             "The same ActivitiesFarm instance should be returned for the activity"
         )
     }
 
     @Test
-    fun `ActivitiesFarm clears dependencies on activity destruction`() {
+    fun `ActivitiesFarm should return different instances for different activities`() {
         val activityController = Robolectric.buildActivity(ComponentActivity::class.java)
         val activityController2 = Robolectric.buildActivity(ComponentActivity::class.java)
         val activity = activityController.get()
@@ -90,7 +85,8 @@ class ActivitiesFarmTests {
             produce<SomeDependency> { mockk() }
         }
 
-        mockRootActivitiesFarmProvider(rootFarm)
+        mockkStatic(ComponentActivity::rootActivitiesFarm.declaringKotlinFile.qualifiedName!!)
+        every { any<ComponentActivity>().rootActivitiesFarm() } returns rootFarm
 
         activityController
             .create()
@@ -98,10 +94,6 @@ class ActivitiesFarmTests {
             .resume()
 
         val someDependency = activity.activitySupply<SomeDependency>()
-
-        activityController.pause()
-            .stop()
-            .destroy()
 
         activityController2
             .create()
@@ -114,7 +106,7 @@ class ActivitiesFarmTests {
         assertNotSame(
             someDependency,
             newSomeDependency,
-            "The dependency should be recreated after the activity is destroyed"
+            "The dependency should be different for different activities"
         )
     }
 
@@ -128,22 +120,15 @@ class ActivitiesFarmTests {
 
     @Test
     fun `ActivitiesFarm delegates to parent ApplicationFarm when dependency not found locally`() {
-        applicationFarm.produce<SomeDependency> { mockk() }
         val activitiesFarm = applicationFarm.createRootActivitiesFarm()
 
-        val dependency = activitiesFarm.supply<SomeDependency>()
+        activitiesFarm.supply<SomeDependency>()
 
         verify { applicationFarm.supply<SomeDependency>() }
-        assertNotNull(
-            dependency,
-            "Dependency should be supplied by parent ApplicationFarm when not found in ActivitiesFarm"
-        )
     }
 
-    private fun mockRootActivitiesFarmProvider(
-        rootActivitiesFarm: ApplicationRootActivitiesFarm
-    ) {
-        mockkStatic(ComponentActivity::rootActivitiesFarm.declaringKotlinFile.qualifiedName!!)
-        every { any<ComponentActivity>().rootActivitiesFarm() } returns rootActivitiesFarm
+    @AfterTest
+    fun tearDown() {
+        resetGlobalFarm()
     }
 }

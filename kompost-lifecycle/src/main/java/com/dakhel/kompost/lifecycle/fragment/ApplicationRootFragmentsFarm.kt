@@ -13,7 +13,7 @@ import com.dakhel.kompost.lifecycle.activity.rootActivitiesFarm
  *
  * @return The [ProduceKey] for the root fragments farm.
  */
-private val ApplicationRootActivitiesFarm.rootFragmentsFarmProduceKey: ProduceKey
+val ApplicationRootActivitiesFarm.rootFragmentsFarmProduceKey: ProduceKey
     get() = ProduceKey(
         ApplicationRootFragmentsFarm::class,
         tag = "$id${ActivityRootFragmentsFarmName}"
@@ -53,6 +53,22 @@ fun ApplicationRootActivitiesFarm.rootFragmentsFarmOrNull(): ApplicationRootFrag
 }
 
 /**
+ * An internal function for the [ApplicationRootActivitiesFarm] class that gets or creates a [ApplicationRootFragmentsFarm].
+ *
+ * The function first tries to get the existing [ApplicationRootFragmentsFarm] using the [rootFragmentsFarmOrNull] function.
+ * If the [ApplicationRootFragmentsFarm] does not exist, it creates a new one using the [createRootFragmentsFarm] function.
+ * The [productionScope] parameter is a lambda with [ApplicationRootFragmentsFarm] as its receiver that is used to configure the new [ApplicationRootFragmentsFarm] if it is created. Default is an empty lambda.
+ *
+ * @param productionScope A lambda with [ApplicationRootFragmentsFarm] as its receiver that is used to configure the new [ApplicationRootFragmentsFarm] if it is created. Default is an empty lambda.
+ * @return The existing or newly created [ApplicationRootFragmentsFarm].
+ */
+internal fun ApplicationRootActivitiesFarm.getOrCreateFragmentsFarm(
+    productionScope: ApplicationRootFragmentsFarm.() -> Unit = {}
+): ApplicationRootFragmentsFarm {
+    return rootFragmentsFarmOrNull() ?: createRootFragmentsFarm(productionScope)
+}
+
+/**
  * An extension function for [Fragment] that retrieves the existing root fragments farm.
  * The function first retrieves the [ApplicationRootActivitiesFarm] associated with the activity of the [Fragment].
  * Then, it uses the [rootFragmentsFarmOrNull] extension function to retrieve the root fragments farm.
@@ -88,7 +104,7 @@ class RootFragmentsFarmAlreadyExistsException :
  * @throws IllegalArgumentException if a root fragments farm already exists.
  */
 fun ApplicationRootActivitiesFarm.createRootFragmentsFarm(
-    productionScope: ApplicationRootFragmentsFarm.() -> Unit
+    productionScope: ApplicationRootFragmentsFarm.() -> Unit = {}
 ): ApplicationRootFragmentsFarm {
     if (rootFragmentsFarmOrNull() != null)
         throw RootFragmentsFarmAlreadyExistsException()
