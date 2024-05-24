@@ -55,22 +55,29 @@ class ApplicationFarm internal constructor(
  * An extension function for the [Application] class.
  * It tries to get the [ApplicationFarm] for the application from the [GlobalFarm].
  * If the [ApplicationFarm] does not exist, it returns null.
+ * The [globalFarm] parameter is an instance of [GlobalFarm] which is used to retrieve the [ApplicationFarm]. Default value is the global farm.
  *
+ * @param globalFarm An instance of [GlobalFarm] which is used to retrieve the [ApplicationFarm]. Default value is the global farm.
  * @return The [ApplicationFarm] for the application, or null if it does not exist.
  */
-fun Application.applicationFarmOrNull(): ApplicationFarm? =
-    farmOrNull(globalFarm(), applicationFarmProduceKey)
+fun Application.applicationFarmOrNull(
+    globalFarm: GlobalFarm = globalFarm()
+): ApplicationFarm? = farmOrNull(globalFarm, applicationFarmProduceKey)
 
 /**
- * An extension function for the [Application] class.
- * It gets the [ApplicationFarm] for the application.
- * If the [ApplicationFarm] does not exist, it throws an error.
+ * An extension function for the [Application] class that retrieves the [ApplicationFarm] for the application.
+ * The function first tries to retrieve the [ApplicationFarm] using the [applicationFarmOrNull] function.
+ * If the [ApplicationFarm] does not exist, the function throws an [IllegalStateException].
+ * The [globalFarm] parameter is an instance of [GlobalFarm] which is used to retrieve the [ApplicationFarm]. Default value is the global farm.
  *
+ * @param globalFarm An instance of [GlobalFarm] which is used to retrieve the [ApplicationFarm]. Default value is the global farm.
  * @return The [ApplicationFarm] for the application.
  * @throws IllegalStateException If the [ApplicationFarm] does not exist.
  */
-fun Application.applicationFarm(): ApplicationFarm {
-    return applicationFarmOrNull() ?: error("Application farm not created")
+fun Application.applicationFarm(
+    globalFarm: GlobalFarm = globalFarm()
+): ApplicationFarm {
+    return applicationFarmOrNull(globalFarm) ?: error("Application farm not created")
 }
 
 /**
@@ -80,25 +87,24 @@ class ApplicationFarmAlreadyExistsException :
     IllegalStateException("Application farm already exists")
 
 /**
- * An extension function for the [Application] class.
- * It creates an [ApplicationFarm] for the application.
+ * An extension function for the [Application] class that creates an [ApplicationFarm].
+ * The function first checks if an [ApplicationFarm] already exists for the application using the [applicationFarmOrNull] function.
+ * If an [ApplicationFarm] already exists, the function throws an [ApplicationFarmAlreadyExistsException].
+ * If an [ApplicationFarm] does not exist, a new one is created using the [ApplicationFarm] constructor.
+ * The new [ApplicationFarm] is then configured using the [productionScope] parameter, which is a lambda with [ApplicationFarm] as its receiver.
+ * After the [ApplicationFarm] is created and configured, it is added to the [GlobalFarm] associated with the application.
  *
- * The function first retrieves the [GlobalFarm] instance.
- * If an [ApplicationFarm] already exists for the application, it throws an [ApplicationFarmAlreadyExistsException].
- * Otherwise, it creates a new [ApplicationFarm] with the application and the [GlobalFarm] as parents.
- * It then applies the [productionScope] to the [ApplicationFarm] and produces the application context.
- * Finally, it produces the [ApplicationFarm] in the [GlobalFarm] with the application's unique farm ID as the key.
- *
- * @param productionScope A lambda with receiver of type [ApplicationFarm]. This is applied to the [ApplicationFarm] after it is created. Default is an empty lambda.
- * @return The created [ApplicationFarm].
+ * @param globalFarm An instance of [GlobalFarm] which is used to retrieve or create the [ApplicationFarm]. Default value is the global farm.
+ * @param productionScope A lambda with [ApplicationFarm] as its receiver that is used to configure the [ApplicationFarm]. Default value is an empty lambda.
+ * @return The newly created [ApplicationFarm].
  * @throws ApplicationFarmAlreadyExistsException If an [ApplicationFarm] already exists for the application.
  */
 fun Application.createApplicationFarm(
+    globalFarm: GlobalFarm = globalFarm(),
     productionScope: ApplicationFarm.() -> Unit = {}
 ): ApplicationFarm {
-    val globalFarm = globalFarm()
 
-    if (applicationFarmOrNull() != null) {
+    if (applicationFarmOrNull(globalFarm) != null) {
         throw ApplicationFarmAlreadyExistsException()
     }
     return ApplicationFarm(this, globalFarm)
@@ -153,12 +159,14 @@ fun Producer.supplyApplicationContext(): Context = supply(ApplicationContextTag)
  * Otherwise, it supplies the value from the [ApplicationFarm] using the provided [tag].
  *
  * @param tag The tag used to supply the value from the [ApplicationFarm]. Default is null.
+ * @param globalFarm An instance of [GlobalFarm] which is used to retrieve the [ApplicationFarm]. Default value is the global farm.
  * @return The supplied value.
  * @throws IllegalStateException If the [ApplicationFarm] does not exist.
  */
 inline fun <reified T> Application.applicationSupply(
-    tag: String? = null
-): T = applicationFarmOrNull()?.supply(tag) ?: error("Application farm not created")
+    tag: String? = null,
+    globalFarm: GlobalFarm = globalFarm()
+): T = applicationFarmOrNull(globalFarm)?.supply(tag) ?: error("Application farm not created")
 
 /**
  * An inline function for the [Application] class.
@@ -168,8 +176,10 @@ inline fun <reified T> Application.applicationSupply(
  * The supplied value is cached, so it is only supplied once.
  *
  * @param tag The tag used to supply the value from the [ApplicationFarm]. Default is null.
+ * @param globalFarm An instance of [GlobalFarm] which is used to retrieve the [ApplicationFarm]. Default value is the global farm.
  * @return A [Lazy] instance that represents the lazily supplied value.
  */
 inline fun <reified T> Application.lazyApplicationSupply(
-    tag: String? = null
-): Lazy<T> = lazy { applicationSupply(tag) }
+    tag: String? = null,
+    globalFarm: GlobalFarm = globalFarm()
+): Lazy<T> = lazy { applicationSupply(tag, globalFarm) }

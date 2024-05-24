@@ -38,7 +38,7 @@ fun resetGlobalFarm() {
 interface GlobalFarm : Producer
 
 /**
- * Represents the default implementation of the [GlobalFarm] interface.
+ * A class that represents the default implementation of the [GlobalFarm] interface.
  *
  * This class is a private class that implements the [GlobalFarm] interface and delegates all [Producer] methods to an instance of [Farm].
  * The [Farm] instance is initialized with a [GlobalFarmId] and [null] as parameters.
@@ -73,7 +73,7 @@ private const val globalFarmLock = "globalFarmLock"
  * @return The instance of the global farm.
  */
 @Synchronized
-internal fun globalFarm(): GlobalFarm {
+fun globalFarm(): GlobalFarm {
     val globalFarm1 = globalFarm
     if (globalFarm1 !== null)
         return globalFarm1

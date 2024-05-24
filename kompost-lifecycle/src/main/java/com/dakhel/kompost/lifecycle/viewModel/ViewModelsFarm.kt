@@ -42,7 +42,7 @@ private val ApplicationRootActivitiesFarm.viewModelsFarmProduceKey: ProduceKey
     get() = ProduceKey(kClass = this::class, tag = viewModelsFarmId)
 
 /**
- * This is an extension property for [ApplicationRootActivitiesFarm] to generate a unique identifier for [ViewModelsFarm].
+ * An extension property for [ApplicationRootActivitiesFarm] to generate a unique identifier for [ViewModelsFarm].
  * This property concatenates the `id` of the [ApplicationRootActivitiesFarm] and the constant [ViewModelsFarmName] to form a unique identifier.
  * This identifier is used when creating a [ProduceKey] for [ViewModelsFarm].
  */
@@ -51,7 +51,7 @@ private val ApplicationRootActivitiesFarm.viewModelsFarmId: String
 
 /**
  * A constant that holds the name of the [ViewModelsFarm] class.
- * This name is used as a tag when generating a [ProduceKey] for the [ViewModelsFarm].
+ * This name is used as part of the unique identifier when generating a [ProduceKey] for the [ViewModelsFarm].
  */
 private const val ViewModelsFarmName = "ViewModelsFarm"
 
@@ -158,7 +158,7 @@ class ViewModelsFarm internal constructor(
     }
 
     /**
-     * Class for creating a ViewModel with a SavedStateHandle.
+     * A class for creating a ViewModel SeedBed with a SavedStateHandle.
      * This class takes a lambda function as a parameter in its constructor.
      * The lambda function should take a SavedStateHandle as a parameter and return an instance of the ViewModel.
      * The class has a lazy property for a ViewModelWithSavedStateCrop, which is created using the lambda function.
@@ -174,7 +174,7 @@ class ViewModelsFarm internal constructor(
         fun harvest(extras: CreationExtras) = crop.harvest(extras)
 
         /**
-         * Class for creating a ViewModel with a SavedStateHandle.
+         * A class for creating a ViewModel with a SavedStateHandle.
          * This class takes a lambda function as a parameter in its constructor.
          * The lambda function should take a SavedStateHandle as a parameter and return an instance of the ViewModel.
          * The class has a harvest function that calls the lambda function with the SavedStateHandle created from the CreationExtras to create the ViewModel.
@@ -190,7 +190,7 @@ class ViewModelsFarm internal constructor(
 }
 
 /**
- * Extension function to get the ViewModelsFarm from an ApplicationRootActivitiesFarm.
+ * An extension function to get the ViewModelsFarm from an ApplicationRootActivitiesFarm.
  * This function retrieves the ViewModelsFarm from the ApplicationRootActivitiesFarm using the viewModelsFarmProduceKey.
  * If a ViewModelsFarm does not exist for the given ProduceKey, null is returned.
  *
@@ -200,7 +200,7 @@ fun ApplicationRootActivitiesFarm.viewModelsFarmOrNull(): ViewModelsFarm? =
     farmOrNull(this, viewModelsFarmProduceKey)
 
 /**
- * Extension function to get the ViewModelsFarm from a Fragment.
+ * An extension function to get the ViewModelsFarm from a Fragment.
  * This function retrieves the ViewModelsFarm from the rootActivitiesFarm of the Fragment's activity using the viewModelsFarmOrNull function.
  * If a ViewModelsFarm does not exist, an error is thrown.
  *
@@ -213,7 +213,7 @@ fun Fragment.viewModelsFarm(): ViewModelsFarm {
 }
 
 /**
- * Extension function to get the ViewModelsFarm from a ComponentActivity.
+ * An extension function to get the ViewModelsFarm from a ComponentActivity.
  * This function retrieves the ViewModelsFarm from the rootActivitiesFarm of the ComponentActivity using the viewModelsFarmOrNull function.
  * If a ViewModelsFarm does not exist, an error is thrown.
  *
@@ -226,7 +226,7 @@ fun ComponentActivity.viewModelsFarm(): ViewModelsFarm {
 }
 
 /**
- * Extension function to create a ViewModelsFarm in an ApplicationRootActivitiesFarm.
+ * An extension function to create a ViewModelsFarm in an ApplicationRootActivitiesFarm.
  * This function checks if a ViewModelsFarm already exists using the viewModelsFarmOrNull function.
  * If a ViewModelsFarm already exists, an IllegalArgumentException is thrown.
  * If a ViewModelsFarm does not exist, a new ViewModelsFarm is created and added to the ApplicationRootActivitiesFarm.
@@ -271,7 +271,7 @@ fun <VM : ViewModel> ViewModelsFarm.supplyViewModel(
 }
 
 /**
- * Extension function to get a lazy ViewModel from a ComponentActivity.
+ * An extension function to get a lazy ViewModel from a ComponentActivity.
  * This function takes two lambda functions as parameters, which are used to get the ViewModelStore and the CreationExtras.
  * The function returns a lazy delegate that retrieves the ViewModel from the ComponentActivity using the viewModel function.
  *
@@ -287,7 +287,7 @@ inline fun <reified VM : ViewModel> ComponentActivity.lazyViewModel(
 }
 
 /**
- * Extension function to get a ViewModel from a ComponentActivity.
+ * An extension function to get a ViewModel from a ComponentActivity.
  * This function takes a ViewModelStore and CreationExtras as parameters.
  * The function retrieves the ViewModel from the ViewModelsFarm using the supplyViewModel function.
  *
@@ -305,7 +305,7 @@ inline fun <reified VM : ViewModel> ComponentActivity.viewModel(
 )
 
 /**
- * Extension function to get a lazy ViewModel from a Fragment.
+ * An extension function to get a lazy ViewModel from a Fragment.
  * This function takes two lambda functions as parameters, which are used to get the ViewModelStore and the CreationExtras.
  * The function returns a lazy delegate that retrieves the ViewModel from the Fragment using the viewModel function.
  *
@@ -321,7 +321,7 @@ inline fun <reified VM : ViewModel> Fragment.lazyViewModel(
 }
 
 /**
- * Extension function to get a ViewModel from a Fragment.
+ * An extension function to get a ViewModel from a Fragment.
  * This function takes a ViewModelStore and CreationExtras as parameters.
  * The function retrieves the ViewModel from the ViewModelsFarm using the supplyViewModel function.
  *
