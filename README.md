@@ -33,7 +33,7 @@ class KompostSampleApplication : Application() {
 
 private fun Application.kompostSampleApplicationFarm() = createApplicationFarm {
     // Application-wide dependencies
-    produce { Database() }
+    produce { DependencyAvailableApplicationWide() }
 }
 ```
 
@@ -63,7 +63,8 @@ Dependencies available to all other scopes within the application.
 
 ```kotlin
 private fun Application.kompostSampleApplicationFarm() = createApplicationFarm {
-    produce { Database() }
+    val singletonDatabase = Database()
+    produce { singletonDatabase }
 }
 ```
 
