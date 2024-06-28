@@ -61,3 +61,34 @@ inline fun <reified S> Producer.supply(tag: String? = null): S {
     val key = ProduceKey(S::class, tag = tag)
     return supply(key)
 }
+
+/**
+ * Produces a singleton and adds it to the [Producer].
+ *
+ * This function is generic and can be used to produce any type of produce, as specified by the type parameter [S].
+ * @param S The type of the produce to be produced.
+ * @param key The [ProduceKey] under which to add the new produce.
+ * @param dependency The instance of the produce to be added.
+ */
+fun <S> Producer.singleton(
+    key: ProduceKey,
+    dependency: S
+) {
+    produce(key) { dependency }
+}
+
+/**
+ * Produces a singleton and adds it to the [Producer].
+ *
+ * This function is generic and can be used to produce any type of produce, as specified by the type parameter [S].
+ * @param S The type of the produce to be produced.
+ * @param tag An optional tag that can be used to further identify the type of produce. Defaults to [null].
+ * @param dependency The instance of the produce to be added.
+ */
+inline fun <reified S> Producer.singleton(
+    tag: String? = null,
+    dependency: S
+) {
+    val key = ProduceKey(S::class, tag = tag)
+    singleton(key, dependency)
+}

@@ -63,8 +63,7 @@ Dependencies available to all other scopes within the application.
 
 ```kotlin
 private fun Application.kompostSampleApplicationFarm() = createApplicationFarm {
-    val singletonDatabase = Database()
-    produce { singletonDatabase }
+    singleton(dependency = Database())
 }
 ```
 
