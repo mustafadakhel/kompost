@@ -1,4 +1,4 @@
-# Kompost: Gardening-Inspired DI 🌷
+# Kompost: Gardening-Inspired DI 🌱
 Welcome to Kompost, the dependency injection library named while I was gardening. Have fun figuring out what everything means. This isn't a serious project, just something from my free time to make DI a bit more amusing.
 
 ## Features
