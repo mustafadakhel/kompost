@@ -3,10 +3,11 @@ package com.dakhel.kompost.lifecycle.activity
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.dakhel.kompost.Farm
+import com.dakhel.kompost.DefaultProducer
 import com.dakhel.kompost.ProduceKey
 import com.dakhel.kompost.Producer
-import com.dakhel.kompost.farmOrNull
+import com.dakhel.kompost.application.kompostLogger
+import com.dakhel.kompost.producerOrNull
 
 /**
  * An extension property for [ComponentActivity] to get the [ProduceKey] for the [ActivityScopedFarm].
@@ -31,7 +32,7 @@ private const val ActivityScopedFarmName = "ActivityScopedFarm"
 
 /**
  * The [ActivityScopedFarm] class is responsible for managing the lifecycle of activity-scoped dependencies in the application.
- * It is a producer of activity-scoped dependencies and uses the [Farm] class to manage the production of these dependencies.
+ * It is a producer of activity-scoped dependencies and uses the [DefaultProducer] class to manage the production of these dependencies.
  * The [ActivityScopedFarm] class is created with an activity and an instance of [ApplicationRootActivitiesFarm].
  *
  * @param activity The [ComponentActivity] that this [ActivityScopedFarm] is associated with.
@@ -41,7 +42,7 @@ private const val ActivityScopedFarmName = "ActivityScopedFarm"
 class ActivityScopedFarm internal constructor(
     activity: ComponentActivity,
     activitiesFarm: ApplicationRootActivitiesFarm
-) : Producer by Farm(id = activity.farmId, parent = activitiesFarm)
+) : Producer by DefaultProducer(id = activity.farmId, parent = activitiesFarm)
 
 /**
  * An extension function for [ComponentActivity] that retrieves the existing [ActivityScopedFarm].
@@ -53,7 +54,7 @@ class ActivityScopedFarm internal constructor(
  */
 internal fun ComponentActivity.activityScopedFarmOrNull(
     activitiesFarm: ApplicationRootActivitiesFarm = rootActivitiesFarm()
-): ActivityScopedFarm? = farmOrNull(activitiesFarm, activityScopedFarmProduceKey)
+): ActivityScopedFarm? = producerOrNull(activitiesFarm, activityScopedFarmProduceKey)
 
 /**
  * An extension function to get or create an [ActivityScopedFarm] for a [ComponentActivity].
@@ -69,7 +70,7 @@ fun ComponentActivity.getOrCreateActivityScopedFarm(
     activitiesFarm: ApplicationRootActivitiesFarm = rootActivitiesFarm(),
     productionScope: ActivityScopedFarm.() -> Unit = {}
 ): ActivityScopedFarm {
-    return farmOrNull(activitiesFarm, activityScopedFarmProduceKey)
+    return producerOrNull(activitiesFarm, activityScopedFarmProduceKey)
         ?: createActivityScopedFarm(activitiesFarm, productionScope)
 }
 
@@ -121,10 +122,13 @@ private fun ApplicationRootActivitiesFarm.produceActivityScopedFarm(
     farm: ActivityScopedFarm
 ) {
     val key = activity.activityScopedFarmProduceKey
+    kompostLogger.log("Producing activity farm for $activity with key $key")
     activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
+            kompostLogger.log("Destroying activity farm for $activity with key $key")
             farm.destroyAllCrops()
             destroy(key)
+            activity.lifecycle.removeObserver(this)
             super.onDestroy(owner)
         }
     })

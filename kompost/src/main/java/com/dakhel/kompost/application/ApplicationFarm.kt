@@ -2,11 +2,12 @@ package com.dakhel.kompost.application
 
 import android.app.Application
 import android.content.Context
-import com.dakhel.kompost.Farm
+import com.dakhel.kompost.DefaultProducer
 import com.dakhel.kompost.GlobalFarm
+import com.dakhel.kompost.KompostDsl
 import com.dakhel.kompost.ProduceKey
 import com.dakhel.kompost.Producer
-import com.dakhel.kompost.farmOrNull
+import com.dakhel.kompost.producerOrNull
 import com.dakhel.kompost.globalFarm
 import com.dakhel.kompost.produce
 import com.dakhel.kompost.supply
@@ -40,7 +41,7 @@ private const val ApplicationFarmName = "ApplicationFarm"
 /**
  * [ApplicationFarm] is a class that represents a farm specific to an application.
  * It is constructed internally with an [Application] instance and a [GlobalFarm] instance as parents.
- * It delegates its [Producer] responsibilities to a [Farm] instance created with the application's unique farm ID and the parent [GlobalFarm].
+ * It delegates its [Producer] responsibilities to a [DefaultProducer] instance created with the application's unique farm ID and the parent [GlobalFarm].
  *
  * @param application The [Application] instance for which this [ApplicationFarm] is created.
  * @param parent The [GlobalFarm] instance that acts as the parent of this [ApplicationFarm].
@@ -49,7 +50,7 @@ private const val ApplicationFarmName = "ApplicationFarm"
 class ApplicationFarm internal constructor(
     application: Application,
     parent: GlobalFarm
-) : Producer by Farm(id = application.applicationFarmId, parent = parent)
+) : Producer by DefaultProducer(id = application.applicationFarmId, parent = parent)
 
 /**
  * An extension function for the [Application] class.
@@ -62,7 +63,7 @@ class ApplicationFarm internal constructor(
  */
 fun Application.applicationFarmOrNull(
     globalFarm: GlobalFarm = globalFarm()
-): ApplicationFarm? = farmOrNull(globalFarm, applicationFarmProduceKey)
+): ApplicationFarm? = producerOrNull(globalFarm, applicationFarmProduceKey)
 
 /**
  * An extension function for the [Application] class that retrieves the [ApplicationFarm] for the application.
@@ -99,10 +100,14 @@ class ApplicationFarmAlreadyExistsException :
  * @return The newly created [ApplicationFarm].
  * @throws ApplicationFarmAlreadyExistsException If an [ApplicationFarm] already exists for the application.
  */
+@KompostDsl
 fun Application.createApplicationFarm(
     globalFarm: GlobalFarm = globalFarm(),
+    loggingEnabled: Boolean = false,
     productionScope: ApplicationFarm.() -> Unit = {}
 ): ApplicationFarm {
+
+    toggleLogging(loggingEnabled)
 
     if (applicationFarmOrNull(globalFarm) != null) {
         throw ApplicationFarmAlreadyExistsException()
@@ -111,11 +116,13 @@ fun Application.createApplicationFarm(
         .apply {
             // Produces the application context in the [ApplicationFarm] for convenience.
             produceApplicationContext(applicationContext)
+            kompostLogger.log("Creating application farm for ${this@createApplicationFarm}")
             productionScope()
         }
         .also {
             val key = applicationFarmProduceKey
             globalFarm.produce(key) { it }
+            kompostLogger.log("Application farm created for ${this@createApplicationFarm}")
         }
 }
 

@@ -3,9 +3,11 @@ package com.dakhel.kompost.lifecycle.fragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.dakhel.kompost.Farm
+import com.dakhel.kompost.DefaultProducer
 import com.dakhel.kompost.ProduceKey
 import com.dakhel.kompost.Producer
+import com.dakhel.kompost.application.kompostLogger
+import com.dakhel.kompost.producerOrNull
 
 /**
  * A constant that holds the name of the [FragmentScopedFarm].
@@ -39,7 +41,7 @@ internal val Fragment.farmId: String
 class FragmentScopedFarm internal constructor(
     fragment: Fragment,
     applicationRootFragmentsFarm: ApplicationRootFragmentsFarm
-) : Producer by Farm(id = fragment.farmId, parent = applicationRootFragmentsFarm)
+) : Producer by DefaultProducer(id = fragment.farmId, parent = applicationRootFragmentsFarm)
 
 /**
  * An extension function for [Fragment] that either retrieves an existing [FragmentScopedFarm] or creates a new one.
@@ -75,13 +77,7 @@ fun Fragment.getOrCreateFragmentScopedFarm(
  */
 internal fun Fragment.fragmentScopedFarmOrNull(
     fragmentsFarm: ApplicationRootFragmentsFarm = rootFragmentsFarm()
-): FragmentScopedFarm? {
-    val key = fragmentScopedFarmProduceKey
-
-    return if (fragmentsFarm.contains(key)) {
-        fragmentsFarm.supply(key)
-    } else null
-}
+): FragmentScopedFarm? = producerOrNull(fragmentsFarm, fragmentScopedFarmProduceKey)
 
 
 /**
@@ -109,6 +105,7 @@ fun Fragment.createFragmentScopedFarm(
 ): FragmentScopedFarm {
     if (fragmentScopedFarmOrNull(fragmentsFarm) != null)
         throw FragmentScopedFarmAlreadyExistsException()
+    kompostLogger.log("Creating fragment farm for $this")
     return FragmentScopedFarm(this, fragmentsFarm)
         .apply(productionScope)
         .also {
@@ -135,8 +132,10 @@ private fun ApplicationRootFragmentsFarm.produceFragmentFarm(
     farm: FragmentScopedFarm
 ) {
     val key = fragment.fragmentScopedFarmProduceKey
+    kompostLogger.log("Producing fragment farm for $fragment with key $key")
     fragment.lifecycle.addObserver(object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
+            kompostLogger.log("Destroying fragment farm for $fragment with key $key")
             farm.destroyAllCrops()
             destroy(key)
             super.onDestroy(owner)

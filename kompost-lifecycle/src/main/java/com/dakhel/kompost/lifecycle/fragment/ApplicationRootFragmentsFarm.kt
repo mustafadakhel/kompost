@@ -1,9 +1,11 @@
 package com.dakhel.kompost.lifecycle.fragment
 
 import androidx.fragment.app.Fragment
-import com.dakhel.kompost.Farm
+import com.dakhel.kompost.DefaultProducer
 import com.dakhel.kompost.ProduceKey
 import com.dakhel.kompost.Producer
+import com.dakhel.kompost.application.kompostLogger
+import com.dakhel.kompost.producerOrNull
 import com.dakhel.kompost.lifecycle.activity.ApplicationRootActivitiesFarm
 import com.dakhel.kompost.lifecycle.activity.rootActivitiesFarm
 
@@ -27,8 +29,8 @@ private const val ActivityRootFragmentsFarmName = "FragmentsFarm"
 
 /**
  * A class that represents the root fragments farm in the application.
- * It is a producer that delegates its production responsibilities to a [Farm].
- * The [Farm] is created with an ID and the [ApplicationRootActivitiesFarm] as its parent.
+ * It is a producer that delegates its production responsibilities to a [DefaultProducer].
+ * The [DefaultProducer] is created with an ID and the [ApplicationRootActivitiesFarm] as its parent.
  *
  * @param id The ID of the root fragments farm.
  * @param applicationFarm The [ApplicationRootActivitiesFarm] associated with this [ApplicationRootFragmentsFarm].
@@ -36,7 +38,7 @@ private const val ActivityRootFragmentsFarmName = "FragmentsFarm"
 class ApplicationRootFragmentsFarm internal constructor(
     id: String,
     applicationFarm: ApplicationRootActivitiesFarm
-) : Producer by Farm(id = id, parent = applicationFarm)
+) : Producer by DefaultProducer(id = id, parent = applicationFarm)
 
 /**
  * An extension function for [ApplicationRootActivitiesFarm] that retrieves the existing root fragments farm.
@@ -44,13 +46,8 @@ class ApplicationRootFragmentsFarm internal constructor(
  *
  * @return The existing root fragments farm, or null if it does not exist.
  */
-fun ApplicationRootActivitiesFarm.rootFragmentsFarmOrNull(): ApplicationRootFragmentsFarm? {
-    val key = rootFragmentsFarmProduceKey
-
-    return if (contains(key)) {
-        supply(key)
-    } else null
-}
+fun ApplicationRootActivitiesFarm.rootFragmentsFarmOrNull(): ApplicationRootFragmentsFarm? =
+    producerOrNull(this, rootFragmentsFarmProduceKey)
 
 /**
  * An internal function for the [ApplicationRootActivitiesFarm] class that gets or creates a [ApplicationRootFragmentsFarm].
@@ -108,6 +105,7 @@ fun ApplicationRootActivitiesFarm.createRootFragmentsFarm(
 ): ApplicationRootFragmentsFarm {
     if (rootFragmentsFarmOrNull() != null)
         throw RootFragmentsFarmAlreadyExistsException()
+    kompostLogger.log("Creating root fragments farm")
     return ApplicationRootFragmentsFarm(ActivityRootFragmentsFarmName, this)
         .apply(productionScope)
         .also {

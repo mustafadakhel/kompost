@@ -40,15 +40,15 @@ interface GlobalFarm : Producer
 /**
  * A class that represents the default implementation of the [GlobalFarm] interface.
  *
- * This class is a private class that implements the [GlobalFarm] interface and delegates all [Producer] methods to an instance of [Farm].
- * The [Farm] instance is initialized with a [GlobalFarmId] and [null] as parameters.
+ * This class is a private class that implements the [GlobalFarm] interface and delegates all [Producer] methods to an instance of [DefaultProducer].
+ * The [DefaultProducer] instance is initialized with a [GlobalFarmId] and [null] as parameters.
  * The [GlobalFarmId] is a unique identifier for the global farm.
  * The [null] parent parameter indicates that this global farm does not have a parent [Producer] from which to retrieve produce if it is not available in the farm.
  *
  * This class is used internally within the [kompost] package and is not intended to be used directly.
  * Instead, use the [globalFarm] function to get the instance of the [GlobalFarm].
  */
-private class DefaultGlobalFarm : GlobalFarm, Producer by Farm(id = GlobalFarmId, parent = null)
+private class DefaultGlobalFarm : GlobalFarm, Producer by DefaultProducer(id = GlobalFarmId, parent = null)
 
 /**
  * The [globalFarm] variable holds the instance of the global farm.

@@ -7,9 +7,9 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertSame
 
-class FarmTests {
+class ProducerTests {
 
-    private val farm: Farm = Farm("TestFarm", globalFarm()).also {
+    private val defaultProducer: DefaultProducer = DefaultProducer("TestFarm", globalFarm()).also {
         globalFarm().produce("TestFarm") { it }
     }
 
@@ -20,16 +20,16 @@ class FarmTests {
 
     @Test
     fun `Farm is created successfully`() {
-        assertNotNull(farm, "Farm should be created")
+        assertNotNull(defaultProducer, "Farm should be created")
     }
 
     @Test
     fun `Farm stores and supplies dependencies correctly`() {
         val dependencyMock: SomeDependency = mockk()
 
-        farm.produce { dependencyMock }
+        defaultProducer.produce { dependencyMock }
 
-        val suppliedDependency: SomeDependency = farm.supply()
+        val suppliedDependency: SomeDependency = defaultProducer.supply()
 
         assertNotNull(suppliedDependency, "Dependency should be supplied")
     }
@@ -38,27 +38,27 @@ class FarmTests {
     fun `Farm throws when supplying unregistered dependency`() {
         assertFailsWith<NoSuchSeedException>(
             "NoSuchSeedException should be thrown when supplying unregistered dependency"
-        ) { farm.supply<GlobalDependency>() }
+        ) { defaultProducer.supply<GlobalDependency>() }
     }
 
     @Test
     fun `Farm throws when producing duplicate dependencies`() {
         val dependencyMock: SomeDependency = mockk()
 
-        farm.produce { dependencyMock }
+        defaultProducer.produce { dependencyMock }
         assertFailsWith<DuplicateProduceException>(
             "DuplicateProduceException should be thrown when producing duplicate dependencies"
-        ) { farm.produce { dependencyMock } }
+        ) { defaultProducer.produce { dependencyMock } }
     }
 
     @Test
     fun `Child farm supplies dependency from Farm when not found locally`() {
         val globalDependency: GlobalDependency = mockk()
-        farm.produce { globalDependency }
+        defaultProducer.produce { globalDependency }
 
-        val childFarm = Farm("ChildFarm", farm)
+        val childProducer = DefaultProducer("ChildFarm", defaultProducer)
 
-        val suppliedDependency: GlobalDependency = childFarm.supply()
+        val suppliedDependency: GlobalDependency = childProducer.supply()
 
         assertNotNull(
             suppliedDependency,
@@ -71,11 +71,11 @@ class FarmTests {
         val dependencyKey = ProduceKey(SomeDependency::class)
         val dependencyMock: SomeDependency = mockk()
 
-        farm.produce(dependencyKey) { dependencyMock }
-        farm.destroy(dependencyKey)
+        defaultProducer.produce(dependencyKey) { dependencyMock }
+        defaultProducer.destroy(dependencyKey)
 
         val exception = assertFailsWith<NoSuchSeedException> {
-            farm.supply<SomeDependency>()
+            defaultProducer.supply<SomeDependency>()
         }
 
         assertNotNull(
@@ -86,17 +86,17 @@ class FarmTests {
 
     @Test
     fun `Farm destroys all dependencies correctly`() {
-        farm.produce { mockk<SomeDependency>() }
-        farm.produce(tag = "Another") { mockk<AnotherDependency>() }
+        defaultProducer.produce { mockk<SomeDependency>() }
+        defaultProducer.produce(tag = "Another") { mockk<AnotherDependency>() }
 
-        farm.destroyAllCrops()
+        defaultProducer.destroyAllCrops()
 
         assertFailsWith<NoSuchSeedException>(
             "NoSuchSeedException should be thrown after all dependencies are destroyed"
-        ) { farm.supply<SomeDependency>() }
+        ) { defaultProducer.supply<SomeDependency>() }
         assertFailsWith<NoSuchSeedException>(
             "NoSuchSeedException should be thrown after all dependencies are destroyed"
-        ) { farm.supply<AnotherDependency>(tag = "Another") }
+        ) { defaultProducer.supply<AnotherDependency>(tag = "Another") }
     }
 
     @Test
@@ -104,12 +104,12 @@ class FarmTests {
         val someDependency: SomeDependency = mockk()
         val anotherDependency: AnotherDependency = mockk()
 
-        farm.produce(tag = "SomeTag") { someDependency }
-        farm.produce(tag = "AnotherTag") { anotherDependency }
+        defaultProducer.produce(tag = "SomeTag") { someDependency }
+        defaultProducer.produce(tag = "AnotherTag") { anotherDependency }
 
-        val suppliedSomeDependency: SomeDependency = farm.supply(tag = "SomeTag")
+        val suppliedSomeDependency: SomeDependency = defaultProducer.supply(tag = "SomeTag")
         val suppliedAnotherDependency: AnotherDependency =
-            farm.supply(tag = "AnotherTag")
+            defaultProducer.supply(tag = "AnotherTag")
 
         assertSame(
             someDependency,
@@ -126,9 +126,9 @@ class FarmTests {
     @Test
     fun `Farm supplies dependencies with constructor parameters correctly`() {
         val expectedParam = "expectedParam"
-        farm.produce { DependencyWithParams(expectedParam) }
+        defaultProducer.produce { DependencyWithParams(expectedParam) }
 
-        val dependency: DependencyWithParams = farm.supply()
+        val dependency: DependencyWithParams = defaultProducer.supply()
 
         assertSame(
             expectedParam,

@@ -6,7 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.dakhel.kompost.application.ApplicationFarm
 import com.dakhel.kompost.lifecycle.activity.ApplicationRootActivitiesFarm
 import com.dakhel.kompost.lifecycle.activity.activitySupply
-import com.dakhel.kompost.lifecycle.activity.createRootActivitiesFarm
+import com.dakhel.kompost.lifecycle.activity.createActivityScopedFarm
 import com.dakhel.kompost.lifecycle.activity.getOrCreateActivitiesFarm
 import com.dakhel.kompost.lifecycle.activity.rootActivitiesFarm
 import com.dakhel.kompost.lifecycle.activity.rootActivitiesFarmOrNull
@@ -57,13 +57,13 @@ class RootActivitiesFarmTests {
 
     @Test
     fun `ActivitiesFarm is created`() {
-        val activitiesFarm = applicationFarm.createRootActivitiesFarm()
+        val activitiesFarm = applicationFarm.createActivityScopedFarm()
         assertNotNull(activitiesFarm, "ActivitiesFarm should be created and linked to the activity")
     }
 
     @Test
     fun `Retrieving existing ActivitiesFarm returns the same instance for the activity`() {
-        val creation = applicationFarm.createRootActivitiesFarm()
+        val creation = applicationFarm.createActivityScopedFarm()
 
         val retrieval = applicationFarm.getOrCreateActivitiesFarm()
 
@@ -81,7 +81,7 @@ class RootActivitiesFarmTests {
         val activity = activityController.get()
         val activity2 = activityController2.get()
 
-        val rootFarm = applicationFarm.createRootActivitiesFarm {
+        val rootFarm = applicationFarm.createActivityScopedFarm {
             produce<SomeDependency> { mockk() }
         }
 
@@ -120,7 +120,7 @@ class RootActivitiesFarmTests {
 
     @Test
     fun `ActivitiesFarm delegates to parent ApplicationFarm when dependency not found locally`() {
-        val activitiesFarm = applicationFarm.createRootActivitiesFarm()
+        val activitiesFarm = applicationFarm.createActivityScopedFarm()
 
         activitiesFarm.supply<SomeDependency>()
 

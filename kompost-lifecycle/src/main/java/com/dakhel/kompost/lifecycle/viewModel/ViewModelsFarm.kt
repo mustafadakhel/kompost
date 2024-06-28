@@ -10,11 +10,13 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.dakhel.kompost.CannotCastHarvestedSeedException
 import com.dakhel.kompost.DuplicateProduceException
-import com.dakhel.kompost.Farm
+import com.dakhel.kompost.DefaultProducer
 import com.dakhel.kompost.NoSuchSeedException
 import com.dakhel.kompost.ProduceKey
 import com.dakhel.kompost.Producer
-import com.dakhel.kompost.farmOrNull
+import com.dakhel.kompost.application.kompostLogger
+import com.dakhel.kompost.producerOrNull
+import com.dakhel.kompost.lifecycle.KompostLifecycleDsl
 import com.dakhel.kompost.lifecycle.activity.ApplicationRootActivitiesFarm
 import com.dakhel.kompost.lifecycle.activity.rootActivitiesFarm
 import kotlin.reflect.KClass
@@ -27,9 +29,7 @@ import kotlin.reflect.KClass
  * @return The generated ProduceKey.
  */
 private val KClass<out ViewModel>.viewModelProduceKey: ProduceKey
-    get() {
-        return ProduceKey(this)
-    }
+    get() = ProduceKey(this)
 
 /**
  * An extension property for [ApplicationRootActivitiesFarm] to get a [ProduceKey].
@@ -57,17 +57,18 @@ private const val ViewModelsFarmName = "ViewModelsFarm"
 
 /**
  * The [ViewModelsFarm] class is responsible for managing the lifecycle of ViewModel dependencies in the application.
- * It is a producer of ViewModels and uses the [Farm] class to manage the production of ViewModels.
+ * It is a producer of ViewModels and uses the [DefaultProducer] class to manage the production of ViewModels.
  * The [ViewModelsFarm] class is created with an id and an instance of [ApplicationRootActivitiesFarm].
  *
  * @param id The unique identifier for this [ViewModelsFarm].
- * @param applicationFarm The [ApplicationRootActivitiesFarm] that this [ViewModelsFarm] belongs to.
+ * @param rootActivitiesFarm The [ApplicationRootActivitiesFarm] that this [ViewModelsFarm] belongs to.
  * @constructor Creates a new instance of [ViewModelsFarm].
  */
+@KompostLifecycleDsl
 class ViewModelsFarm internal constructor(
     id: String,
-    applicationFarm: ApplicationRootActivitiesFarm,
-) : Producer by Farm(id = id, parent = applicationFarm) {
+    rootActivitiesFarm: ApplicationRootActivitiesFarm,
+) : Producer by DefaultProducer(id = id, parent = rootActivitiesFarm) {
 
     /**
      * Lazy property for the ViewModelProvider.Factory used to create ViewModels.
@@ -88,11 +89,14 @@ class ViewModelsFarm internal constructor(
     private fun viewModelFactory(): ViewModelProvider.Factory {
         return object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                val producer = this@ViewModelsFarm
                 val key = modelClass.kotlin.viewModelProduceKey
-                if (viewModelWithSavedStateSeedBeds.containsKey(key.value))
-                    return producer.supplyViewModelWithSavedState(key, extras)
-                return producer.supply(key)
+                kompostLogger.log("Creating ViewModel: $key")
+                if (viewModelWithSavedStateSeedBeds.containsKey(key.value)) {
+                    kompostLogger.log("Creating ViewModel with SavedState: $key")
+                    return supplyViewModelWithSavedState(key, extras)
+                }
+                kompostLogger.log("Creating ViewModel: $key")
+                return supply(key)
             }
         }
     }
@@ -105,6 +109,7 @@ class ViewModelsFarm internal constructor(
      *
      * @param produce A lambda function that takes a SavedStateHandle as a parameter and returns an instance of the ViewModel.
      */
+    @KompostLifecycleDsl
     inline fun <reified VM : ViewModel> produceViewModelWithSavedState(
         noinline produce: (savedStateHandle: SavedStateHandle) -> VM
     ) {
@@ -122,6 +127,7 @@ class ViewModelsFarm internal constructor(
      * @param key The ProduceKey for the ViewModel.
      * @param produce A lambda function that takes a SavedStateHandle as a parameter and returns an instance of the ViewModel.
      */
+    @KompostLifecycleDsl
     fun <VM : ViewModel> produceViewModelWithSavedState(
         key: ProduceKey,
         produce: (savedStateHandle: SavedStateHandle) -> VM
@@ -129,8 +135,11 @@ class ViewModelsFarm internal constructor(
         val seedBed = ViewModelWithSavedStateSeedBed { savedStateHandle ->
             produce(savedStateHandle)
         }
-        if (viewModelWithSavedStateSeedBeds.containsKey(key.value))
+        if (viewModelWithSavedStateSeedBeds.containsKey(key.value)) {
+            kompostLogger.log("ViewModel with SavedState already exists: $key")
             throw DuplicateProduceException(key)
+        }
+        kompostLogger.log("Producing ViewModel with SavedState: $key")
         viewModelWithSavedStateSeedBeds[key.value] = seedBed
     }
 
@@ -152,7 +161,9 @@ class ViewModelsFarm internal constructor(
     ): VM {
         val bed = viewModelWithSavedStateSeedBeds[key.value]
             ?: throw NoSuchSeedException(key)
+        kompostLogger.log("Harvesting ViewModel with SavedState: $key")
         val harvestedCrop = bed.harvest(extras)
+        kompostLogger.log("Harvested ViewModel with SavedState: $key")
         return harvestedCrop as? VM
             ?: throw CannotCastHarvestedSeedException(key, harvestedCrop)
     }
@@ -197,7 +208,7 @@ class ViewModelsFarm internal constructor(
  * @return The ViewModelsFarm if it exists, null otherwise.
  */
 fun ApplicationRootActivitiesFarm.viewModelsFarmOrNull(): ViewModelsFarm? =
-    farmOrNull(this, viewModelsFarmProduceKey)
+    producerOrNull(this, viewModelsFarmProduceKey)
 
 /**
  * An extension function to get the ViewModelsFarm from a Fragment.
@@ -236,12 +247,14 @@ fun ComponentActivity.viewModelsFarm(): ViewModelsFarm {
  * @return The created ViewModelsFarm.
  * @throws IllegalArgumentException if a ViewModelsFarm already exists.
  */
+@KompostLifecycleDsl
 fun ApplicationRootActivitiesFarm.createViewModelsFarm(
     productionScope: ViewModelsFarm.() -> Unit
 ): ViewModelsFarm {
     require(viewModelsFarmOrNull() == null) {
         "ViewModels farm already exists"
     }
+    kompostLogger.log("Creating ViewModelsFarm")
     return ViewModelsFarm(ViewModelsFarmName, this)
         .apply(productionScope)
         .also {

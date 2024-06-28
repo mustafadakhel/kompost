@@ -1,4 +1,4 @@
-package com.dakhel.kompost.sample
+package com.dakhel.kompost.sample.presentation.activity
 
 import android.content.Intent
 import android.os.Bundle
@@ -12,11 +12,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.dakhel.kompost.sample.ui.theme.KompostTheme
+import com.dakhel.kompost.lifecycle.viewModel.lazyViewModel
+import com.dakhel.kompost.sample.presentation.theme.theme.KompostTheme
+import com.dakhel.kompost.sample.presentation.viewModel.MainViewModel
 
 class ComposeActivity : ComponentActivity() {
+    private val viewModel by lazyViewModel<MainViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel.log()
         setContent {
             KompostTheme {
                 // A surface container using the 'background' color from the theme

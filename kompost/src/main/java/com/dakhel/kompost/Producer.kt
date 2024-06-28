@@ -37,6 +37,7 @@ interface Producer {
  * @param tag An optional tag that can be used to further identify the type of produce. Defaults to [null].
  * @param produce A function that produces an item of type [S]. This function is invoked to create the actual produce.
  */
+@KompostDsl
 inline fun <reified S> Producer.produce(
     tag: String? = null,
     noinline produce: () -> S
@@ -60,19 +61,3 @@ inline fun <reified S> Producer.supply(tag: String? = null): S {
     val key = ProduceKey(S::class, tag = tag)
     return supply(key)
 }
-
-///**
-// * An inline function that checks if a [Producer] contains a type of produce.
-// *
-// * This function is generic and can be used to check for any type of produce, as specified by the type parameter [S].
-// * The type of produce to be checked is identified by a [ProduceKey], which is created using the class of [S] and an optional tag.
-// *
-// * @receiver The [Producer] instance that will be checked for the type of produce.
-// * @param S The type of the produce to be checked.
-// * @param tag An optional tag that can be used to further identify the type of produce. Defaults to [null].
-// * @return A Boolean indicating whether the [Producer] contains the type of produce associated with the [ProduceKey].
-// */
-//inline fun <reified S> Producer.contains(tag: String? = null): Boolean {
-//    val key = ProduceKey(S::class, tag = tag)
-//    return contains(key)
-//}
