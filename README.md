@@ -17,7 +17,7 @@ Planting your first seed is easy! Just follow the steps below and watch your dep
 
 ```kotlin
 dependencies {
-    implementation("com.dakhel.kompost:kompost:1.0.0")
+    project(":kompost")
 }
 ```
 

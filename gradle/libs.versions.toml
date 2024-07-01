@@ -1,0 +1,35 @@
+[versions]
+dokka = "1.9.20"
+kotlin = "2.0.0"
+android = "8.5.0"
+compose-plugin = "1.6.10"
+kompost = "1.0.0-SNAPSHOT"
+activityKtx = "1.9.0"
+fragmentKtx = "1.8.1"
+junitJupiterApi = "5.10.2"
+junitKtx = "1.2.1"
+kotlinTest = "2.0.0"
+lifecycleViewmodelKtx = "2.8.3"
+mockk = "1.13.11"
+robolectric = "4.12.2"
+
+[plugins]
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "android" }
+android-application = { id = "com.android.application", version.ref = "android" }
+kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+
+
+[libraries]
+activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
+fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
+fragment-testing = { module = "androidx.fragment:fragment-testing", version.ref = "fragmentKtx" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junitJupiterApi" }
+junit-ktx = { module = "androidx.test.ext:junit-ktx", version.ref = "junitKtx" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinTest" }
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlinTest" }
+lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
