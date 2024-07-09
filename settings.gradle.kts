@@ -1,10 +1,11 @@
 pluginManagement {
     repositories {
         google()
-        mavenCentral()
         gradlePluginPortal()
+        mavenCentral()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -16,4 +17,5 @@ dependencyResolutionManagement {
 rootProject.name = "Kompost"
 include(":sample")
 include(":core")
+include(":android")
 include(":lifecycle")

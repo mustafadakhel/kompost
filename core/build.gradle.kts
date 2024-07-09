@@ -1,53 +1,40 @@
+import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    alias(libs.plugins.android.library)
-    kotlin("android")
+    kotlin
     alias(libs.plugins.dokka)
-    `maven-publish`
-    signing
 }
 
-group = "io.github.mustafadakhel"
-version = libs.versions.kompost.get()
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
 
-android {
-    namespace = "com.dakhel.kompost.core"
-    compileSdk = 34
-
-    defaultConfig {
-        minSdk = 21
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
+tasks {
+    compileKotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_1_8)
+            explicitApiMode = ExplicitApiMode.Strict
+            allWarningsAsErrors = true
+        }
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+    compileTestKotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_1_8)
+        }
     }
 }
 
 dependencies {
-
     testImplementation(libs.mockk)
-
-    testImplementation(libs.robolectric)
-
-    testImplementation(libs.junit.jupiter.api)
-
-    testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlin.test.junit)
 }
 
-tasks.register<Jar>("sourcesJar") {
-    archiveClassifier.set("sources")
-    from(android.sourceSets["main"].java.srcDirs)
-}
+apply(plugin = "kompost.publish.kotlin")
+apply(plugin = "kompost.signing")
 
-tasks.register<Jar>("javadocJar") {
-    dependsOn("dokkaJavadoc")
-    archiveClassifier.set("javadoc")
-    from(tasks.named("dokkaJavadoc").get().outputs)
+tasks.dokkaJavadoc.configure {
+    outputDirectory.set(file("${layout.buildDirectory.get()}/dokka/javadoc"))
 }
