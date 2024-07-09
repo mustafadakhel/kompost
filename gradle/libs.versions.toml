@@ -1,35 +1,62 @@
 [versions]
+androidxJunit = "1.1.5"
+appcompatVersion = "1.7.0"
+composeBom = "2024.06.00"
+constraintlayout = "2.1.4"
 dokka = "1.9.20"
+espressoCoreVersion = "3.5.1"
 kotlin = "2.0.0"
 android = "8.5.0"
 compose-plugin = "1.6.10"
-kompost = "1.0.0-SNAPSHOT"
+kompost = "1.0.1"
 activityKtx = "1.9.0"
 fragmentKtx = "1.8.1"
 junitJupiterApi = "5.10.2"
 junitKtx = "1.2.1"
 kotlinTest = "2.0.0"
+lifecycleRuntimeKtx = "2.8.3"
 lifecycleViewmodelKtx = "2.8.3"
 mockk = "1.13.11"
 robolectric = "4.12.2"
+coreKtx = "1.13.1"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+appcompat = "1.7.0"
+material = "1.12.0"
+gradle-tools = "8.5.0"
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "android" }
 android-application = { id = "com.android.application", version.ref = "android" }
+kotlin-gradle-plugin = { id = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+gradle-tools = { id = "com.android.tools.build:gradle", version.ref = "gradle-tools" }
 kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 
-
 [libraries]
+activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityKtx" }
 activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
+appcompat-v161 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 fragment-testing = { module = "androidx.fragment:fragment-testing", version.ref = "fragmentKtx" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junitJupiterApi" }
 junit-ktx = { module = "androidx.test.ext:junit-ktx", version.ref = "junitKtx" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinTest" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlinTest" }
+lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+material3 = { module = "androidx.compose.material3:material3" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }

@@ -136,7 +136,7 @@ This project is done in free time and isn’t meant to be taken too seriously. H
 
 ## License
 
-MIT License.
+Apache License.
 
 Happy planting! 🌻
 
