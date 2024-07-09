@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 plugins {
     com.android.library
     `kotlin-android`
-    `kotlin-kapt`
     alias(libs.plugins.dokka)
 }
 
@@ -13,7 +12,7 @@ java {
 }
 
 android {
-    namespace = "com.mustafadakhel.kompost.lifecycle"
+    namespace = "com.mustafadakhel.kompost.android"
     compileSdk = 34
 
     defaultConfig {
@@ -36,27 +35,18 @@ android {
 kotlin.explicitApi = ExplicitApiMode.Strict
 
 dependencies {
-    implementation(project(":core"))
-    implementation(project(":android"))
-    implementation(libs.lifecycle.viewmodel.ktx)
-    implementation(libs.activity.ktx)
-    implementation(libs.fragment.ktx)
-    implementation(libs.junit.ktx)
+    api(project(":core"))
+    implementation(libs.core.ktx)
+    implementation(libs.appcompat.v161)
+    implementation(libs.material)
 
     testImplementation(libs.mockk)
-
-    testImplementation(libs.robolectric)
-
     testImplementation(libs.junit.jupiter.api)
-
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlin.test.junit)
 
-    debugImplementation(libs.fragment.testing)
-}
-
-kapt {
-    correctErrorTypes = true
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core)
 }
 
 apply(plugin = "kompost.publish.android")
