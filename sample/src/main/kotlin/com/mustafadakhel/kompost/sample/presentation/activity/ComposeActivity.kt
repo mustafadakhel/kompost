@@ -14,7 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.os.bundleOf
-import com.mustafadakhel.kompost.android.lifecycle.viewModel.lazyViewModel
+import com.mustafadakhel.kompost.lifecycle.viewModel.lazyViewModel
 import com.mustafadakhel.kompost.sample.presentation.theme.theme.KompostTheme
 import com.mustafadakhel.kompost.sample.presentation.viewModel.MainViewModel
 import kotlin.reflect.KClass

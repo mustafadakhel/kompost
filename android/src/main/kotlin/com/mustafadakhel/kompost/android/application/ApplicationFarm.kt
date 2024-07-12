@@ -48,7 +48,7 @@ private const val ApplicationFarmName = "ApplicationFarm"
  * @param parent The [GlobalFarm] instance that acts as the parent of this [ApplicationFarm].
  * @constructor Creates an [ApplicationFarm] instance with the provided [Application] and [GlobalFarm].
  */
-class ApplicationFarm internal constructor(
+public class ApplicationFarm internal constructor(
     application: Application,
     parent: GlobalFarm
 ) : Producer by DefaultProducer(id = application.applicationFarmId, parent = parent)
@@ -62,7 +62,7 @@ class ApplicationFarm internal constructor(
  * @param globalFarm An instance of [GlobalFarm] which is used to retrieve the [ApplicationFarm]. Default value is the global farm.
  * @return The [ApplicationFarm] for the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application, or null if it does not exist.
  */
-fun Application.applicationFarmOrNull(
+public fun Application.applicationFarmOrNull(
     globalFarm: GlobalFarm = globalFarm()
 ): ApplicationFarm? = producerOrNull(globalFarm, applicationFarmProduceKey)
 
@@ -76,7 +76,7 @@ fun Application.applicationFarmOrNull(
  * @return The [ApplicationFarm] for the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application.
  * @throws IllegalStateException If the [ApplicationFarm] does not exist.
  */
-fun Application.applicationFarm(
+public fun Application.applicationFarm(
     globalFarm: GlobalFarm = globalFarm()
 ): ApplicationFarm {
     return applicationFarmOrNull(globalFarm) ?: error("Application farm not created")
@@ -85,7 +85,7 @@ fun Application.applicationFarm(
 /**
  * An exception that is thrown when an attempt is made to create an [ApplicationFarm] that already exists.
  */
-class ApplicationFarmAlreadyExistsException :
+public class ApplicationFarmAlreadyExistsException :
     IllegalStateException("Application farm already exists")
 
 /**
@@ -102,7 +102,7 @@ class ApplicationFarmAlreadyExistsException :
  * @throws ApplicationFarmAlreadyExistsException If an [ApplicationFarm] already exists for the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application.
  */
 @KompostDsl
-fun Application.createApplicationFarm(
+public fun Application.createApplicationFarm(
     globalFarm: GlobalFarm = globalFarm(),
     loggingEnabled: Boolean = false,
     productionScope: ApplicationFarm.() -> Unit = {}
@@ -156,7 +156,7 @@ private fun ApplicationFarm.produceApplicationContext(
  *
  * @return The [Context] instance that represents the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application context.
  */
-fun Producer.supplyApplicationContext(): Context =
+public fun Producer.supplyApplicationContext(): Context =
     supply(ApplicationContextTag)
 
 /**
@@ -172,7 +172,7 @@ fun Producer.supplyApplicationContext(): Context =
  * @return The supplied value.
  * @throws IllegalStateException If the [ApplicationFarm] does not exist.
  */
-inline fun <reified T> Application.applicationSupply(
+public inline fun <reified T> Application.applicationSupply(
     tag: String? = null,
     globalFarm: GlobalFarm = globalFarm()
 ): T = applicationFarmOrNull(globalFarm)?.supply(tag) ?: error("Application farm not created")
@@ -188,7 +188,7 @@ inline fun <reified T> Application.applicationSupply(
  * @param globalFarm An instance of [GlobalFarm] which is used to retrieve the [ApplicationFarm]. Default value is the global farm.
  * @return A [Lazy] instance that represents the lazily supplied value.
  */
-inline fun <reified T> Application.lazyApplicationSupply(
+public inline fun <reified T> Application.lazyApplicationSupply(
     tag: String? = null,
     globalFarm: GlobalFarm = globalFarm()
 ): Lazy<T> = lazy { applicationSupply(tag, globalFarm) }

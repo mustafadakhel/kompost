@@ -1,4 +1,4 @@
-package com.mustafadakhel.kompost.android.lifecycle
+package com.mustafadakhel.kompost.lifecycle
 
 @DslMarker
 @Target(
@@ -7,4 +7,4 @@ package com.mustafadakhel.kompost.android.lifecycle
     AnnotationTarget.TYPE,
     AnnotationTarget.FUNCTION
 )
-annotation class KompostLifecycleDsl
+internal annotation class KompostLifecycleDsl

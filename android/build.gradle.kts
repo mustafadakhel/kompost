@@ -1,6 +1,14 @@
+import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
+
 plugins {
     com.android.library
     `kotlin-android`
+    alias(libs.plugins.dokka)
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 android {
@@ -9,15 +17,10 @@ android {
 
     defaultConfig {
         minSdk = 21
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
@@ -28,6 +31,8 @@ android {
         }
     }
 }
+
+kotlin.explicitApi = ExplicitApiMode.Strict
 
 dependencies {
     api(project(":core"))
@@ -46,3 +51,7 @@ dependencies {
 
 apply(plugin = "kompost.publish.android")
 apply(plugin = "kompost.signing")
+
+tasks.dokkaJavadoc.configure {
+    outputDirectory.set(file("${layout.buildDirectory.get()}/dokka/javadoc"))
+}

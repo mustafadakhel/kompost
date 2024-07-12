@@ -48,8 +48,8 @@ android {
 dependencies {
 
     implementation(project(":core"))
-    implementation(project(":android:lifecycle"))
     implementation(project(":android"))
+    implementation(project(":lifecycle"))
 
     implementation(libs.activity.compose)
     implementation(platform(libs.compose.bom))

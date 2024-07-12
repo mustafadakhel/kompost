@@ -1,4 +1,4 @@
-package com.mustafadakhel.kompost.android.lifecycle
+package com.mustafadakhel.kompost.lifecycle
 
 import android.os.Build
 import androidx.fragment.app.Fragment
@@ -7,11 +7,11 @@ import androidx.fragment.app.testing.withFragment
 import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.mustafadakhel.kompost.core.ProduceKey
-import com.mustafadakhel.kompost.android.lifecycle.fragment.ApplicationRootFragmentsFarm
-import com.mustafadakhel.kompost.android.lifecycle.fragment.FragmentScopedFarm
-import com.mustafadakhel.kompost.android.lifecycle.fragment.createFragmentScopedFarm
-import com.mustafadakhel.kompost.android.lifecycle.fragment.fragmentScopedFarmOrNull
-import com.mustafadakhel.kompost.android.lifecycle.fragment.getOrCreateFragmentScopedFarm
+import com.mustafadakhel.kompost.lifecycle.fragment.ApplicationRootFragmentsFarm
+import com.mustafadakhel.kompost.lifecycle.fragment.FragmentScopedFarm
+import com.mustafadakhel.kompost.lifecycle.fragment.createFragmentScopedFarm
+import com.mustafadakhel.kompost.lifecycle.fragment.fragmentScopedFarmOrNull
+import com.mustafadakhel.kompost.lifecycle.fragment.getOrCreateFragmentScopedFarm
 import com.mustafadakhel.kompost.core.produce
 import com.mustafadakhel.kompost.core.resetGlobalFarm
 import com.mustafadakhel.kompost.core.supply

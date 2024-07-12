@@ -2,7 +2,7 @@ package com.mustafadakhel.kompost.sample.presentation.activity
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import com.mustafadakhel.kompost.android.lifecycle.viewModel.lazyViewModel
+import com.mustafadakhel.kompost.lifecycle.viewModel.lazyViewModel
 import com.mustafadakhel.kompost.sample.presentation.viewModel.MainViewModelWithSavedStateHandle
 
 class MainActivity : ComponentActivity() {

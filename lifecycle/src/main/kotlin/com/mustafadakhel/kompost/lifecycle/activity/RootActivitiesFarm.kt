@@ -1,14 +1,14 @@
-package com.mustafadakhel.kompost.android.lifecycle.activity
+package com.mustafadakhel.kompost.lifecycle.activity
 
 import androidx.activity.ComponentActivity
+import com.mustafadakhel.kompost.android.application.ApplicationFarm
+import com.mustafadakhel.kompost.android.application.applicationFarm
 import com.mustafadakhel.kompost.core.DefaultProducer
 import com.mustafadakhel.kompost.core.ProduceKey
 import com.mustafadakhel.kompost.core.Producer
-import com.mustafadakhel.kompost.android.application.ApplicationFarm
-import com.mustafadakhel.kompost.android.application.applicationFarm
 import com.mustafadakhel.kompost.core.kompostLogger
 import com.mustafadakhel.kompost.core.producerOrNull
-import com.mustafadakhel.kompost.android.lifecycle.KompostLifecycleDsl
+import com.mustafadakhel.kompost.lifecycle.KompostLifecycleDsl
 
 /**
  * An extension property for [ApplicationFarm] that generates a [ProduceKey] for the root activities farm.
@@ -41,17 +41,17 @@ private const val ActivitiesFarmName = "ActivitiesFarm"
  * The [DefaultProducer] is created with an ID that is the ID of the root activities farm in the [ApplicationFarm].
  * The [DefaultProducer] is also associated with the [ApplicationFarm] as its parent.
  *
- * @param applicationFarm The [ApplicationFarm] associated with this [ApplicationRootActivitiesFarm].
+ * @param applicationFarm The [ApplicationFarm] associated with this [RootActivitiesFarm].
  */
 @KompostLifecycleDsl
-class ApplicationRootActivitiesFarm internal constructor(
+public class RootActivitiesFarm internal constructor(
     applicationFarm: ApplicationFarm
 ) : Producer by DefaultProducer(id = applicationFarm.rootActivitiesFarmId, parent = applicationFarm)
 
 /**
  * An extension function for [ApplicationFarm] that either retrieves the existing root activities farm or creates a new one.
  * The function first tries to retrieve the existing root activities farm using the [rootActivitiesFarmOrNull] function.
- * If the root activities farm does not exist, the function creates a new one using the [createActivityScopedFarm] function.
+ * If the root activities farm does not exist, the function creates a new one using the [createActivitiesFarm] function.
  * The function takes a [productionScope] as a parameter, which is a lambda that defines the production scope of the root activities farm.
  * The [productionScope] is used when creating a new root activities farm.
  *
@@ -59,9 +59,9 @@ class ApplicationRootActivitiesFarm internal constructor(
  * @return The existing or newly created root activities farm.
  */
 internal fun ApplicationFarm.getOrCreateActivitiesFarm(
-    productionScope: ApplicationRootActivitiesFarm.() -> Unit = {}
-): ApplicationRootActivitiesFarm {
-    return rootActivitiesFarmOrNull() ?: createActivityScopedFarm(productionScope)
+    productionScope: RootActivitiesFarm.() -> Unit = {}
+): RootActivitiesFarm {
+    return rootActivitiesFarmOrNull() ?: createActivitiesFarm(productionScope)
 }
 
 /**
@@ -70,7 +70,7 @@ internal fun ApplicationFarm.getOrCreateActivitiesFarm(
  *
  * @return The existing root activities farm, or null if it does not exist.
  */
-internal fun ApplicationFarm.rootActivitiesFarmOrNull(): ApplicationRootActivitiesFarm? =
+internal fun ApplicationFarm.rootActivitiesFarmOrNull(): RootActivitiesFarm? =
     producerOrNull(this, rootActivitiesFarmProduceKey)
 
 /**
@@ -82,38 +82,38 @@ internal fun ApplicationFarm.rootActivitiesFarmOrNull(): ApplicationRootActiviti
  * @return The existing root activities farm.
  * @throws IllegalStateException if the root activities farm does not exist.
  */
-fun ComponentActivity.rootActivitiesFarm(): ApplicationRootActivitiesFarm {
+public fun ComponentActivity.rootActivitiesFarm(): RootActivitiesFarm {
     return application.applicationFarm().rootActivitiesFarmOrNull()
         ?: error("Activities farm not created")
 }
 
 /**
- * An exception that is thrown when an attempt is made to create a [ApplicationRootActivitiesFarm] that already exists.
+ * An exception that is thrown when an attempt is made to create a [RootActivitiesFarm] that already exists.
  */
-class RootActivitiesFarmAlreadyExistsException :
+public class RootActivitiesFarmAlreadyExistsException :
     IllegalStateException("Root activities farm already exists")
 
 /**
  * An extension function for [ApplicationFarm] that creates a new root activities farm.
  * The function first checks if a root activities farm already exists using the [rootActivitiesFarmOrNull] function.
  * If a root activities farm already exists, the function throws an [RootActivitiesFarmAlreadyExistsException].
- * If a root activities farm does not exist, the function creates a new one using the [ApplicationRootActivitiesFarm] constructor.
+ * If a root activities farm does not exist, the function creates a new one using the [RootActivitiesFarm] constructor.
  * The function takes a [productionScope] as a parameter, which is a lambda that defines the production scope of the new root activities farm.
  * The [productionScope] is applied to the new root activities farm.
- * After creating the new root activities farm, the function produces it using the [produce] function and the [rootActivitiesFarmProduceKey] extension property.
+ * After creating the new root activities farm, the function produces it using the [Producer.produce] function and the [rootActivitiesFarmProduceKey] extension property.
  *
  * @param productionScope The lambda that defines the production scope of the new root activities farm. Default value is an empty lambda.
  * @return The newly created root activities farm.
  * @throws RootActivitiesFarmAlreadyExistsException if a root activities farm already exists.
  */
 @KompostLifecycleDsl
-fun ApplicationFarm.createActivityScopedFarm(
-    productionScope: ApplicationRootActivitiesFarm.() -> Unit = {}
-): ApplicationRootActivitiesFarm {
+public fun ApplicationFarm.createActivitiesFarm(
+    productionScope: RootActivitiesFarm.() -> Unit = {}
+): RootActivitiesFarm {
     if (rootActivitiesFarmOrNull() != null)
         throw RootActivitiesFarmAlreadyExistsException()
     kompostLogger.log("Creating root activities farm")
-    return ApplicationRootActivitiesFarm(this)
+    return RootActivitiesFarm(this)
         .apply(productionScope)
         .also {
             val key = rootActivitiesFarmProduceKey

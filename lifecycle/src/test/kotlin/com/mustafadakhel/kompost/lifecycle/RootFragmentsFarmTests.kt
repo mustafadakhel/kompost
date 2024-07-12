@@ -1,18 +1,18 @@
-package com.mustafadakhel.kompost.android.lifecycle
+package com.mustafadakhel.kompost.lifecycle
 
 import android.os.Build
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.mustafadakhel.kompost.android.lifecycle.activity.ApplicationRootActivitiesFarm
-import com.mustafadakhel.kompost.android.lifecycle.fragment.ApplicationRootFragmentsFarm
-import com.mustafadakhel.kompost.android.lifecycle.fragment.createRootFragmentsFarm
-import com.mustafadakhel.kompost.android.lifecycle.fragment.fragmentSupply
-import com.mustafadakhel.kompost.android.lifecycle.fragment.getOrCreateFragmentsFarm
-import com.mustafadakhel.kompost.android.lifecycle.fragment.rootFragmentsFarm
-import com.mustafadakhel.kompost.android.lifecycle.fragment.rootFragmentsFarmOrNull
-import com.mustafadakhel.kompost.android.lifecycle.fragment.rootFragmentsFarmProduceKey
+import com.mustafadakhel.kompost.lifecycle.activity.RootActivitiesFarm
+import com.mustafadakhel.kompost.lifecycle.fragment.ApplicationRootFragmentsFarm
+import com.mustafadakhel.kompost.lifecycle.fragment.createRootFragmentsFarm
+import com.mustafadakhel.kompost.lifecycle.fragment.fragmentSupply
+import com.mustafadakhel.kompost.lifecycle.fragment.getOrCreateFragmentsFarm
+import com.mustafadakhel.kompost.lifecycle.fragment.rootFragmentsFarm
+import com.mustafadakhel.kompost.lifecycle.fragment.rootFragmentsFarmOrNull
+import com.mustafadakhel.kompost.lifecycle.fragment.rootFragmentsFarmProduceKey
 import com.mustafadakhel.kompost.core.produce
 import com.mustafadakhel.kompost.core.resetGlobalFarm
 import com.mustafadakhel.kompost.core.supply
@@ -37,7 +37,7 @@ import kotlin.test.assertSame
 @Config(sdk = [Build.VERSION_CODES.O_MR1])
 class RootFragmentsFarmTests {
 
-    private val rootActivitiesFarm = mockk<ApplicationRootActivitiesFarm>(relaxed = true) {
+    private val rootActivitiesFarm = mockk<RootActivitiesFarm>(relaxed = true) {
         var applicationRootFragmentsFarm: ApplicationRootFragmentsFarm? = null
         every {
             produce<ApplicationRootFragmentsFarm>(

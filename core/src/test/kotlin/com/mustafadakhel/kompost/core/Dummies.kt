@@ -1,15 +1,9 @@
 package com.mustafadakhel.kompost.core
 
-interface GlobalDependency {
-    fun doSomethingGlobal()
-}
+interface GlobalDependency
 
-interface SomeDependency {
-    fun doSomething()
-}
+interface SomeDependency
 
-class AnotherDependency {
-    fun doAnotherThing() {}
-}
+class AnotherDependency
 
 class DependencyWithParams(val param: String)

@@ -18,4 +18,4 @@ rootProject.name = "Kompost"
 include(":sample")
 include(":core")
 include(":android")
-include(":android:lifecycle")
+include(":lifecycle")

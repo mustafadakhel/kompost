@@ -1,4 +1,4 @@
-package com.mustafadakhel.kompost.android.lifecycle.viewModel
+package com.mustafadakhel.kompost.lifecycle.viewModel
 
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.Fragment
@@ -16,9 +16,9 @@ import com.mustafadakhel.kompost.core.ProduceKey
 import com.mustafadakhel.kompost.core.Producer
 import com.mustafadakhel.kompost.core.kompostLogger
 import com.mustafadakhel.kompost.core.producerOrNull
-import com.mustafadakhel.kompost.android.lifecycle.KompostLifecycleDsl
-import com.mustafadakhel.kompost.android.lifecycle.activity.ApplicationRootActivitiesFarm
-import com.mustafadakhel.kompost.android.lifecycle.activity.rootActivitiesFarm
+import com.mustafadakhel.kompost.lifecycle.KompostLifecycleDsl
+import com.mustafadakhel.kompost.lifecycle.activity.RootActivitiesFarm
+import com.mustafadakhel.kompost.lifecycle.activity.rootActivitiesFarm
 import kotlin.reflect.KClass
 
 /**
@@ -32,21 +32,21 @@ private val KClass<out ViewModel>.viewModelProduceKey: ProduceKey
     get() = ProduceKey(this)
 
 /**
- * An extension property for [ApplicationRootActivitiesFarm] to get a [ProduceKey].
- * It generates a [ProduceKey] for the [ApplicationRootActivitiesFarm] with the class of the [ApplicationRootActivitiesFarm] and the [viewModelsFarmId] as a tag
+ * An extension property for [RootActivitiesFarm] to get a [ProduceKey].
+ * It generates a [ProduceKey] for the [RootActivitiesFarm] with the class of the [RootActivitiesFarm] and the [viewModelsFarmId] as a tag
  *
- * @receiver The [ApplicationRootActivitiesFarm] for which the ProduceKey is generated.
+ * @receiver The [RootActivitiesFarm] for which the ProduceKey is generated.
  * @return The generated ProduceKey.
  */
-private val ApplicationRootActivitiesFarm.viewModelsFarmProduceKey: ProduceKey
+private val RootActivitiesFarm.viewModelsFarmProduceKey: ProduceKey
     get() = ProduceKey(kClass = this::class, tag = viewModelsFarmId)
 
 /**
- * An extension property for [ApplicationRootActivitiesFarm] to generate a unique identifier for [ViewModelsFarm].
- * This property concatenates the `id` of the [ApplicationRootActivitiesFarm] and the constant [ViewModelsFarmName] to form a unique identifier.
+ * An extension property for [RootActivitiesFarm] to generate a unique identifier for [ViewModelsFarm].
+ * This property concatenates the `id` of the [RootActivitiesFarm] and the constant [ViewModelsFarmName] to form a unique identifier.
  * This identifier is used when creating a [ProduceKey] for [ViewModelsFarm].
  */
-private val ApplicationRootActivitiesFarm.viewModelsFarmId: String
+private val RootActivitiesFarm.viewModelsFarmId: String
     get() = "$id$ViewModelsFarmName"
 
 /**
@@ -56,18 +56,18 @@ private val ApplicationRootActivitiesFarm.viewModelsFarmId: String
 private const val ViewModelsFarmName = "ViewModelsFarm"
 
 /**
- * The [ViewModelsFarm] class is responsible for managing the com.mustafadakhel.kompost.android.lifecycle of ViewModel dependencies in the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application.
+ * The [ViewModelsFarm] class is responsible for managing the lifecycle of ViewModel dependencies in the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application.
  * It is a producer of ViewModels and uses the [DefaultProducer] class to manage the production of ViewModels.
- * The [ViewModelsFarm] class is created with an id and an instance of [ApplicationRootActivitiesFarm].
+ * The [ViewModelsFarm] class is created with an id and an instance of [RootActivitiesFarm].
  *
  * @param id The unique identifier for this [ViewModelsFarm].
- * @param rootActivitiesFarm The [ApplicationRootActivitiesFarm] that this [ViewModelsFarm] belongs to.
+ * @param rootActivitiesFarm The [RootActivitiesFarm] that this [ViewModelsFarm] belongs to.
  * @constructor Creates a new instance of [ViewModelsFarm].
  */
 @KompostLifecycleDsl
-class ViewModelsFarm internal constructor(
+public class ViewModelsFarm internal constructor(
     id: String,
-    rootActivitiesFarm: ApplicationRootActivitiesFarm,
+    rootActivitiesFarm: RootActivitiesFarm,
 ) : Producer by DefaultProducer(id = id, parent = rootActivitiesFarm) {
 
     /**
@@ -110,7 +110,7 @@ class ViewModelsFarm internal constructor(
      * @param produce A lambda function that takes a SavedStateHandle as a parameter and returns an instance of the ViewModel.
      */
     @KompostLifecycleDsl
-    inline fun <reified VM : ViewModel> produceViewModelWithSavedState(
+    public inline fun <reified VM : ViewModel> produceViewModelWithSavedState(
         noinline produce: (savedStateHandle: SavedStateHandle) -> VM
     ) {
         val key = ProduceKey(kClass = VM::class, tag = null)
@@ -128,7 +128,7 @@ class ViewModelsFarm internal constructor(
      * @param produce A lambda function that takes a SavedStateHandle as a parameter and returns an instance of the ViewModel.
      */
     @KompostLifecycleDsl
-    fun <VM : ViewModel> produceViewModelWithSavedState(
+    public fun <VM : ViewModel> produceViewModelWithSavedState(
         key: ProduceKey,
         produce: (savedStateHandle: SavedStateHandle) -> VM
     ) {
@@ -155,6 +155,7 @@ class ViewModelsFarm internal constructor(
      * @param extras The CreationExtras used to create the ViewModel.
      * @return The created ViewModel.
      */
+    @Suppress("UNCHECKED_CAST")
     private fun <VM : ViewModel> supplyViewModelWithSavedState(
         key: ProduceKey,
         extras: CreationExtras,
@@ -177,7 +178,7 @@ class ViewModelsFarm internal constructor(
      *
      * @param seed A lambda function that takes a SavedStateHandle as a parameter and returns an instance of the ViewModel.
      */
-    class ViewModelWithSavedStateSeedBed<VM : ViewModel>(
+    private class ViewModelWithSavedStateSeedBed<VM : ViewModel>(
         seed: (savedStateHandle: SavedStateHandle) -> VM
     ) {
         private val crop: ViewModelWithSavedStateCrop<VM> by lazy { ViewModelWithSavedStateCrop(seed) }
@@ -207,7 +208,7 @@ class ViewModelsFarm internal constructor(
  *
  * @return The ViewModelsFarm if it exists, null otherwise.
  */
-fun ApplicationRootActivitiesFarm.viewModelsFarmOrNull(): ViewModelsFarm? =
+public fun RootActivitiesFarm.viewModelsFarmOrNull(): ViewModelsFarm? =
     producerOrNull(this, viewModelsFarmProduceKey)
 
 /**
@@ -218,7 +219,7 @@ fun ApplicationRootActivitiesFarm.viewModelsFarmOrNull(): ViewModelsFarm? =
  * @return The ViewModelsFarm if it exists.
  * @throws RuntimeException if the ViewModelsFarm does not exist.
  */
-fun Fragment.viewModelsFarm(): ViewModelsFarm {
+public fun Fragment.viewModelsFarm(): ViewModelsFarm {
     return requireActivity().rootActivitiesFarm().viewModelsFarmOrNull()
         ?: error("ViewModels farm not created")
 }
@@ -231,7 +232,7 @@ fun Fragment.viewModelsFarm(): ViewModelsFarm {
  * @return The ViewModelsFarm if it exists.
  * @throws RuntimeException if the ViewModelsFarm does not exist.
  */
-fun ComponentActivity.viewModelsFarm(): ViewModelsFarm {
+public fun ComponentActivity.viewModelsFarm(): ViewModelsFarm {
     return rootActivitiesFarm().viewModelsFarmOrNull()
         ?: error("ViewModels farm not created")
 }
@@ -248,7 +249,7 @@ fun ComponentActivity.viewModelsFarm(): ViewModelsFarm {
  * @throws IllegalArgumentException if a ViewModelsFarm already exists.
  */
 @KompostLifecycleDsl
-fun ApplicationRootActivitiesFarm.createViewModelsFarm(
+public fun RootActivitiesFarm.createViewModelsFarm(
     productionScope: ViewModelsFarm.() -> Unit
 ): ViewModelsFarm {
     require(viewModelsFarmOrNull() == null) {
@@ -274,7 +275,7 @@ fun ApplicationRootActivitiesFarm.createViewModelsFarm(
  * @param extras The CreationExtras used to create the ViewModel.
  * @return The created ViewModel.
  */
-fun <VM : ViewModel> ViewModelsFarm.supplyViewModel(
+public fun <VM : ViewModel> ViewModelsFarm.supplyViewModel(
     vmClass: KClass<VM>,
     viewModelStore: ViewModelStore,
     extras: CreationExtras,
@@ -292,10 +293,10 @@ fun <VM : ViewModel> ViewModelsFarm.supplyViewModel(
  * @param extras A lambda function that returns the CreationExtras used to create the ViewModel.
  * @return A lazy delegate for the ViewModel.
  */
-inline fun <reified VM : ViewModel> ComponentActivity.lazyViewModel(
+public inline fun <reified VM : ViewModel> ComponentActivity.lazyViewModel(
     crossinline viewModelStore: () -> ViewModelStore = { this.viewModelStore },
     crossinline extras: () -> CreationExtras = { this.defaultViewModelCreationExtras },
-) = lazy {
+): Lazy<VM> = lazy {
     viewModel<VM>(viewModelStore(), extras())
 }
 
@@ -308,7 +309,7 @@ inline fun <reified VM : ViewModel> ComponentActivity.lazyViewModel(
  * @param extras The CreationExtras used to create the ViewModel.
  * @return The ViewModel.
  */
-inline fun <reified VM : ViewModel> ComponentActivity.viewModel(
+public inline fun <reified VM : ViewModel> ComponentActivity.viewModel(
     viewModelStore: ViewModelStore = this.viewModelStore,
     extras: CreationExtras = this.defaultViewModelCreationExtras,
 ): VM = viewModelsFarm().supplyViewModel(
@@ -326,10 +327,10 @@ inline fun <reified VM : ViewModel> ComponentActivity.viewModel(
  * @param extras A lambda function that returns the CreationExtras used to create the ViewModel.
  * @return A lazy delegate for the ViewModel.
  */
-inline fun <reified VM : ViewModel> Fragment.lazyViewModel(
+public inline fun <reified VM : ViewModel> Fragment.lazyViewModel(
     crossinline viewModelStore: () -> ViewModelStore = { this.viewModelStore },
     crossinline extras: () -> CreationExtras = { this.defaultViewModelCreationExtras },
-) = lazy {
+): Lazy<VM> = lazy {
     viewModel<VM>(viewModelStore(), extras())
 }
 
@@ -342,7 +343,7 @@ inline fun <reified VM : ViewModel> Fragment.lazyViewModel(
  * @param extras The CreationExtras used to create the ViewModel.
  * @return The ViewModel.
  */
-inline fun <reified VM : ViewModel> Fragment.viewModel(
+public inline fun <reified VM : ViewModel> Fragment.viewModel(
     viewModelStore: ViewModelStore = this.viewModelStore,
     extras: CreationExtras = this.defaultViewModelCreationExtras,
 ): VM = viewModelsFarm().supplyViewModel(

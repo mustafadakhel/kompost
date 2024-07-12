@@ -1,16 +1,16 @@
-package com.mustafadakhel.kompost.android.lifecycle
+package com.mustafadakhel.kompost.lifecycle
 
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.mustafadakhel.kompost.android.application.ApplicationFarm
-import com.mustafadakhel.kompost.android.lifecycle.activity.ApplicationRootActivitiesFarm
-import com.mustafadakhel.kompost.android.lifecycle.activity.activitySupply
-import com.mustafadakhel.kompost.android.lifecycle.activity.createActivityScopedFarm
-import com.mustafadakhel.kompost.android.lifecycle.activity.getOrCreateActivitiesFarm
-import com.mustafadakhel.kompost.android.lifecycle.activity.rootActivitiesFarm
-import com.mustafadakhel.kompost.android.lifecycle.activity.rootActivitiesFarmOrNull
-import com.mustafadakhel.kompost.android.lifecycle.activity.rootActivitiesFarmProduceKey
+import com.mustafadakhel.kompost.lifecycle.activity.RootActivitiesFarm
+import com.mustafadakhel.kompost.lifecycle.activity.activitySupply
+import com.mustafadakhel.kompost.lifecycle.activity.createActivitiesFarm
+import com.mustafadakhel.kompost.lifecycle.activity.getOrCreateActivitiesFarm
+import com.mustafadakhel.kompost.lifecycle.activity.rootActivitiesFarm
+import com.mustafadakhel.kompost.lifecycle.activity.rootActivitiesFarmOrNull
+import com.mustafadakhel.kompost.lifecycle.activity.rootActivitiesFarmProduceKey
 import com.mustafadakhel.kompost.core.produce
 import com.mustafadakhel.kompost.core.resetGlobalFarm
 import com.mustafadakhel.kompost.core.supply
@@ -37,33 +37,33 @@ import kotlin.test.assertSame
 class RootActivitiesFarmTests {
 
     private val applicationFarm = mockk<ApplicationFarm>(relaxed = true) {
-        var applicationRootActivitiesFarm: ApplicationRootActivitiesFarm? = null
+        var rootActivitiesFarm: RootActivitiesFarm? = null
         every {
-            produce<ApplicationRootActivitiesFarm>(
+            produce<RootActivitiesFarm>(
                 rootActivitiesFarmProduceKey,
                 captureLambda()
             )
         } answers {
-            val farm = lambda<() -> ApplicationRootActivitiesFarm>().invoke()
-            applicationRootActivitiesFarm = farm
+            val farm = lambda<() -> RootActivitiesFarm>().invoke()
+            rootActivitiesFarm = farm
         }
-        every { supply<ApplicationRootActivitiesFarm>(rootActivitiesFarmProduceKey) } answers {
-            applicationRootActivitiesFarm!!
+        every { supply<RootActivitiesFarm>(rootActivitiesFarmProduceKey) } answers {
+            rootActivitiesFarm!!
         }
         every { produce<SomeDependency>(produce = any()) } just Runs
         every { supply<SomeDependency>() } returns mockk()
-        every { contains(rootActivitiesFarmProduceKey) } answers { applicationRootActivitiesFarm != null }
+        every { contains(rootActivitiesFarmProduceKey) } answers { rootActivitiesFarm != null }
     }
 
     @Test
     fun `ActivitiesFarm is created`() {
-        val activitiesFarm = applicationFarm.createActivityScopedFarm()
+        val activitiesFarm = applicationFarm.createActivitiesFarm()
         assertNotNull(activitiesFarm, "ActivitiesFarm should be created and linked to the activity")
     }
 
     @Test
     fun `Retrieving existing ActivitiesFarm returns the same instance for the activity`() {
-        val creation = applicationFarm.createActivityScopedFarm()
+        val creation = applicationFarm.createActivitiesFarm()
 
         val retrieval = applicationFarm.getOrCreateActivitiesFarm()
 
@@ -81,7 +81,7 @@ class RootActivitiesFarmTests {
         val activity = activityController.get()
         val activity2 = activityController2.get()
 
-        val rootFarm = applicationFarm.createActivityScopedFarm {
+        val rootFarm = applicationFarm.createActivitiesFarm {
             produce<SomeDependency> { mockk() }
         }
 
@@ -120,7 +120,7 @@ class RootActivitiesFarmTests {
 
     @Test
     fun `ActivitiesFarm delegates to parent ApplicationFarm when dependency not found locally`() {
-        val activitiesFarm = applicationFarm.createActivityScopedFarm()
+        val activitiesFarm = applicationFarm.createActivitiesFarm()
 
         activitiesFarm.supply<SomeDependency>()
 

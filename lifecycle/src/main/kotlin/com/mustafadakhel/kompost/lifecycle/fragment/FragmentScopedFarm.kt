@@ -1,4 +1,4 @@
-package com.mustafadakhel.kompost.android.lifecycle.fragment
+package com.mustafadakhel.kompost.lifecycle.fragment
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -38,7 +38,7 @@ internal val Fragment.farmId: String
  * @param applicationRootFragmentsFarm The [ApplicationRootFragmentsFarm] that is the parent of this [FragmentScopedFarm].
  * @constructor Creates a new instance of [FragmentScopedFarm].
  */
-class FragmentScopedFarm internal constructor(
+public class FragmentScopedFarm internal constructor(
     fragment: Fragment,
     applicationRootFragmentsFarm: ApplicationRootFragmentsFarm
 ) : Producer by DefaultProducer(id = fragment.farmId, parent = applicationRootFragmentsFarm)
@@ -55,7 +55,7 @@ class FragmentScopedFarm internal constructor(
  * @param productionScope A lambda with [FragmentScopedFarm] as its receiver that is used to configure the [FragmentScopedFarm]. Default value is an empty lambda.
  * @return The existing or newly created [FragmentScopedFarm].
  */
-fun Fragment.getOrCreateFragmentScopedFarm(
+internal fun Fragment.getOrCreateFragmentScopedFarm(
     fragmentsFarm: ApplicationRootFragmentsFarm = rootFragmentsFarm(),
     productionScope: FragmentScopedFarm.() -> Unit = {}
 ): FragmentScopedFarm {
@@ -75,7 +75,7 @@ fun Fragment.getOrCreateFragmentScopedFarm(
  * @param fragmentsFarm An instance of [ApplicationRootFragmentsFarm] which is used to check if a [FragmentScopedFarm] exists. Default value is the root fragments farm.
  * @return The existing [FragmentScopedFarm], or null if it does not exist.
  */
-internal fun Fragment.fragmentScopedFarmOrNull(
+public fun Fragment.fragmentScopedFarmOrNull(
     fragmentsFarm: ApplicationRootFragmentsFarm = rootFragmentsFarm()
 ): FragmentScopedFarm? = producerOrNull(fragmentsFarm, fragmentScopedFarmProduceKey)
 
@@ -83,7 +83,7 @@ internal fun Fragment.fragmentScopedFarmOrNull(
 /**
  * An exception that is thrown when an attempt is made to create a [FragmentScopedFarm] that already exists.
  */
-class FragmentScopedFarmAlreadyExistsException :
+public class FragmentScopedFarmAlreadyExistsException :
     IllegalStateException("Fragment farm already exists")
 
 /**
@@ -99,7 +99,7 @@ class FragmentScopedFarmAlreadyExistsException :
  * @return The newly created [FragmentScopedFarm].
  * @throws FragmentScopedFarmAlreadyExistsException If a [FragmentScopedFarm] already exists for the [Fragment].
  */
-fun Fragment.createFragmentScopedFarm(
+internal fun Fragment.createFragmentScopedFarm(
     fragmentsFarm: ApplicationRootFragmentsFarm = rootFragmentsFarm(),
     productionScope: FragmentScopedFarm.() -> Unit = {}
 ): FragmentScopedFarm {
@@ -119,7 +119,7 @@ fun Fragment.createFragmentScopedFarm(
 /**
  * A private extension function for the [ApplicationRootFragmentsFarm] class that produces a [FragmentScopedFarm] for a given [Fragment].
  * The function first generates a [ProduceKey] for the [FragmentScopedFarm] using the [fragmentScopedFarmProduceKey] extension property of the [Fragment].
- * The [Fragment]'s com.mustafadakhel.kompost.android.lifecycle is then observed and an [DefaultLifecycleObserver.onDestroy] callback is added.
+ * The [Fragment]'s lifecycle is then observed and an [DefaultLifecycleObserver.onDestroy] callback is added.
  * In the [DefaultLifecycleObserver.onDestroy] callback, all crops of the [FragmentScopedFarm] are destroyed,
  * then the [FragmentScopedFarm] itself is destroyed from the [ApplicationRootFragmentsFarm].
  * Finally, the [FragmentScopedFarm] is produced in the [ApplicationRootFragmentsFarm] with the generated [ProduceKey] and the [FragmentScopedFarm] itself.
@@ -154,7 +154,7 @@ private fun ApplicationRootFragmentsFarm.produceFragmentFarm(
  * @param tag An optional tag that is used as part of the [ProduceKey] when retrieving the supply. Default value is null.
  * @return A [Lazy] delegate that provides a lazy initialization of the supply of type [T].
  */
-inline fun <reified T> Fragment.lazyFragmentSupply(
+public inline fun <reified T> Fragment.lazyFragmentSupply(
     tag: String? = null
 ): Lazy<T> = lazy { fragmentSupply(tag) }
 
@@ -169,10 +169,10 @@ inline fun <reified T> Fragment.lazyFragmentSupply(
  * @param fragmentsFarm The [ApplicationRootFragmentsFarm] to retrieve or add the [FragmentScopedFarm] to. Default value is the root activities farm.
  * @return The retrieved dependency of type [T].
  */
-inline fun <reified T> Fragment.fragmentSupply(
+public inline fun <reified T> Fragment.fragmentSupply(
     tag: String? = null,
     fragmentsFarm: ApplicationRootFragmentsFarm = rootFragmentsFarm()
 ): T {
-    return getOrCreateFragmentScopedFarm(fragmentsFarm)
+    return (fragmentScopedFarmOrNull(fragmentsFarm) ?: fragmentsFarm)
         .supply(ProduceKey(T::class, tag = tag))
 }

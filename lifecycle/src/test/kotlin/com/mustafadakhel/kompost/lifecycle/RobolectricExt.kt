@@ -1,4 +1,4 @@
-package com.mustafadakhel.kompost.android.lifecycle
+package com.mustafadakhel.kompost.lifecycle
 
 import android.app.Activity
 import androidx.fragment.app.Fragment

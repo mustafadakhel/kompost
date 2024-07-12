@@ -1,4 +1,4 @@
-package com.mustafadakhel.kompost.android.lifecycle.activity
+package com.mustafadakhel.kompost.lifecycle.activity
 
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -31,17 +31,17 @@ internal val ComponentActivity.farmId: String
 private const val ActivityScopedFarmName = "ActivityScopedFarm"
 
 /**
- * The [ActivityScopedFarm] class is responsible for managing the com.mustafadakhel.kompost.android.lifecycle of activity-scoped dependencies in the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application.
+ * The [ActivityScopedFarm] class is responsible for managing the lifecycle of activity-scoped dependencies in the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application.
  * It is a producer of activity-scoped dependencies and uses the [DefaultProducer] class to manage the production of these dependencies.
- * The [ActivityScopedFarm] class is created with an activity and an instance of [ApplicationRootActivitiesFarm].
+ * The [ActivityScopedFarm] class is created with an activity and an instance of [RootActivitiesFarm].
  *
  * @param activity The [ComponentActivity] that this [ActivityScopedFarm] is associated with.
- * @param activitiesFarm The [ApplicationRootActivitiesFarm] that this [ActivityScopedFarm] belongs to.
+ * @param activitiesFarm The [RootActivitiesFarm] that this [ActivityScopedFarm] belongs to.
  * @constructor Creates a new instance of [ActivityScopedFarm].
  */
-class ActivityScopedFarm internal constructor(
+public class ActivityScopedFarm internal constructor(
     activity: ComponentActivity,
-    activitiesFarm: ApplicationRootActivitiesFarm
+    activitiesFarm: RootActivitiesFarm
 ) : Producer by DefaultProducer(id = activity.farmId, parent = activitiesFarm)
 
 /**
@@ -49,25 +49,25 @@ class ActivityScopedFarm internal constructor(
  * The function uses the [activityScopedFarmProduceKey] extension property to retrieve the [ActivityScopedFarm].
  * If an [ActivityScopedFarm] does not exist, the function returns null.
  *
- * @param activitiesFarm The [ApplicationRootActivitiesFarm] associated with the [ComponentActivity]. Default value is the root activities farm.
+ * @param activitiesFarm The [RootActivitiesFarm] associated with the [ComponentActivity]. Default value is the root activities farm.
  * @return The existing [ActivityScopedFarm], or null if it does not exist.
  */
-internal fun ComponentActivity.activityScopedFarmOrNull(
-    activitiesFarm: ApplicationRootActivitiesFarm = rootActivitiesFarm()
+public fun ComponentActivity.activityScopedFarmOrNull(
+    activitiesFarm: RootActivitiesFarm = rootActivitiesFarm()
 ): ActivityScopedFarm? = producerOrNull(activitiesFarm, activityScopedFarmProduceKey)
 
 /**
  * An extension function to get or create an [ActivityScopedFarm] for a [ComponentActivity].
- * This function retrieves the [ActivityScopedFarm] from the [ApplicationRootActivitiesFarm] using the [activityScopedFarmProduceKey].
- * If an [ActivityScopedFarm] does not exist, a new one is created and added to the [ApplicationRootActivitiesFarm].
+ * This function retrieves the [ActivityScopedFarm] from the [RootActivitiesFarm] using the [activityScopedFarmProduceKey].
+ * If an [ActivityScopedFarm] does not exist, a new one is created and added to the [RootActivitiesFarm].
  * The function takes a lambda function as a parameter, which is used to set up the [ActivityScopedFarm].
  *
- * @param activitiesFarm The [ApplicationRootActivitiesFarm] to retrieve or add the [ActivityScopedFarm] to.
+ * @param activitiesFarm The [RootActivitiesFarm] to retrieve or add the [ActivityScopedFarm] to.
  * @param productionScope A lambda function that sets up the [ActivityScopedFarm].
  * @return The retrieved or created [ActivityScopedFarm].
  */
-fun ComponentActivity.getOrCreateActivityScopedFarm(
-    activitiesFarm: ApplicationRootActivitiesFarm = rootActivitiesFarm(),
+internal fun ComponentActivity.getOrCreateActivityScopedFarm(
+    activitiesFarm: RootActivitiesFarm = rootActivitiesFarm(),
     productionScope: ActivityScopedFarm.() -> Unit = {}
 ): ActivityScopedFarm {
     return producerOrNull(activitiesFarm, activityScopedFarmProduceKey)
@@ -77,23 +77,23 @@ fun ComponentActivity.getOrCreateActivityScopedFarm(
 /**
  * An exception that is thrown when an attempt is made to create an [ActivityScopedFarm] that already exists.
  */
-class ActivityScopedFarmAlreadyExistsException :
+public class ActivityScopedFarmAlreadyExistsException :
     IllegalStateException("Activity farm already exists")
 
 /**
  * An extension function to create an [ActivityScopedFarm] for a [ComponentActivity].
  * This function checks if an [ActivityScopedFarm] already exists using the [activityScopedFarmOrNull] function.
  * If an [ActivityScopedFarm] already exists, an [ActivityScopedFarmAlreadyExistsException] is thrown.
- * If an [ActivityScopedFarm] does not exist, a new one is created and added to the [ApplicationRootActivitiesFarm].
+ * If an [ActivityScopedFarm] does not exist, a new one is created and added to the [RootActivitiesFarm].
  * The function takes a lambda function as a parameter, which is used to set up the [ActivityScopedFarm].
  *
- * @param activitiesFarm The [ApplicationRootActivitiesFarm] to add the [ActivityScopedFarm] to.
+ * @param activitiesFarm The [RootActivitiesFarm] to add the [ActivityScopedFarm] to.
  * @param productionScope A lambda function that sets up the [ActivityScopedFarm].
  * @return The created [ActivityScopedFarm].
  * @throws ActivityScopedFarmAlreadyExistsException if an [ActivityScopedFarm] already exists.
  */
 internal fun ComponentActivity.createActivityScopedFarm(
-    activitiesFarm: ApplicationRootActivitiesFarm = rootActivitiesFarm(),
+    activitiesFarm: RootActivitiesFarm = rootActivitiesFarm(),
     productionScope: ActivityScopedFarm.() -> Unit = {}
 ): ActivityScopedFarm {
     if (activityScopedFarmOrNull(activitiesFarm) != null)
@@ -109,15 +109,15 @@ internal fun ComponentActivity.createActivityScopedFarm(
 }
 
 /**
- * A function that is used to produce an [ActivityScopedFarm] for a given [ComponentActivity] within the [ApplicationRootActivitiesFarm].
+ * A function that is used to produce an [ActivityScopedFarm] for a given [ComponentActivity] within the [RootActivitiesFarm].
  * It first creates a [ProduceKey] for the [ActivityScopedFarm] using the [activityScopedFarmProduceKey] extension property.
- * Then, it adds a [DefaultLifecycleObserver] to the com.mustafadakhel.kompost.android.lifecycle of the [ComponentActivity] to handle the destruction of the [ActivityScopedFarm] when the [ComponentActivity] is destroyed.
- * Finally, it produces the [ActivityScopedFarm] in the [ApplicationRootActivitiesFarm] using the created [ProduceKey].
+ * Then, it adds a [DefaultLifecycleObserver] to the lifecycle of the [ComponentActivity] to handle the destruction of the [ActivityScopedFarm] when the [ComponentActivity] is destroyed.
+ * Finally, it produces the [ActivityScopedFarm] in the [RootActivitiesFarm] using the created [ProduceKey].
  *
  * @param activity The [ComponentActivity] for which the [ActivityScopedFarm] is to be produced.
  * @param farm The [ActivityScopedFarm] to be produced.
  */
-private fun ApplicationRootActivitiesFarm.produceActivityScopedFarm(
+private fun RootActivitiesFarm.produceActivityScopedFarm(
     activity: ComponentActivity,
     farm: ActivityScopedFarm
 ) {
@@ -144,7 +144,7 @@ private fun ApplicationRootActivitiesFarm.produceActivityScopedFarm(
  * @param tag The tag to identify the dependency. Default value is null.
  * @return A [Lazy] instance that lazily initializes the dependency.
  */
-inline fun <reified T> ComponentActivity.lazyActivitySupply(
+public inline fun <reified T> ComponentActivity.lazyActivitySupply(
     tag: String? = null
 ): Lazy<T> = lazy { activitySupply(tag) }
 
@@ -153,16 +153,16 @@ inline fun <reified T> ComponentActivity.lazyActivitySupply(
  * This function retrieves the dependency from the [ActivityScopedFarm] associated with the [ComponentActivity].
  * The [ActivityScopedFarm] is retrieved or created using the [getOrCreateActivityScopedFarm] function.
  * The function takes an optional tag as a parameter, which is used as part of the [ProduceKey] to identify the dependency.
- * The function also takes an [ApplicationRootActivitiesFarm] as a parameter, which is used to retrieve or create the [ActivityScopedFarm].
+ * The function also takes an [RootActivitiesFarm] as a parameter, which is used to retrieve or create the [ActivityScopedFarm].
  *
  * @param tag The tag to identify the dependency. Default value is null.
- * @param activitiesFarm The [ApplicationRootActivitiesFarm] to retrieve or add the [ActivityScopedFarm] to. Default value is the root activities farm.
+ * @param activitiesFarm The [RootActivitiesFarm] to retrieve or add the [ActivityScopedFarm] to. Default value is the root activities farm.
  * @return The retrieved dependency of type [T].
  */
-inline fun <reified T> ComponentActivity.activitySupply(
+public inline fun <reified T> ComponentActivity.activitySupply(
     tag: String? = null,
-    activitiesFarm: ApplicationRootActivitiesFarm = rootActivitiesFarm()
+    activitiesFarm: RootActivitiesFarm = rootActivitiesFarm()
 ): T {
-    return getOrCreateActivityScopedFarm(activitiesFarm)
+    return (activityScopedFarmOrNull(activitiesFarm) ?: activitiesFarm)
         .supply(ProduceKey(T::class, tag = tag))
 }

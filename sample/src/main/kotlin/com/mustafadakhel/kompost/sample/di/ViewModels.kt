@@ -1,13 +1,13 @@
 package com.mustafadakhel.kompost.sample.di
 
-import com.mustafadakhel.kompost.android.lifecycle.activity.ApplicationRootActivitiesFarm
-import com.mustafadakhel.kompost.android.lifecycle.viewModel.createViewModelsFarm
 import com.mustafadakhel.kompost.core.produce
+import com.mustafadakhel.kompost.core.supply
+import com.mustafadakhel.kompost.lifecycle.activity.RootActivitiesFarm
+import com.mustafadakhel.kompost.lifecycle.viewModel.createViewModelsFarm
 import com.mustafadakhel.kompost.sample.presentation.viewModel.MainViewModel
 import com.mustafadakhel.kompost.sample.presentation.viewModel.MainViewModelWithSavedStateHandle
-import com.mustafadakhel.kompost.core.supply
 
-fun ApplicationRootActivitiesFarm.viewModels() = createViewModelsFarm {
+fun RootActivitiesFarm.viewModels() = createViewModelsFarm {
     produce {
         MainViewModel(supply())
     }

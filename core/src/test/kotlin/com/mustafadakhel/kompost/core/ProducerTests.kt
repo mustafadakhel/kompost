@@ -1,13 +1,5 @@
 package com.mustafadakhel.kompost.core
 
-import com.mustafadakhel.kompost.core.DefaultProducer
-import com.mustafadakhel.kompost.core.DuplicateProduceException
-import com.mustafadakhel.kompost.core.NoSuchSeedException
-import com.mustafadakhel.kompost.core.ProduceKey
-import com.mustafadakhel.kompost.core.globalFarm
-import com.mustafadakhel.kompost.core.produce
-import com.mustafadakhel.kompost.core.resetGlobalFarm
-import com.mustafadakhel.kompost.core.supply
 import io.mockk.mockk
 import kotlin.test.BeforeTest
 import kotlin.test.Test

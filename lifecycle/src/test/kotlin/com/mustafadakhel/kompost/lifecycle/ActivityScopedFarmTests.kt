@@ -1,14 +1,14 @@
-package com.mustafadakhel.kompost.android.lifecycle
+package com.mustafadakhel.kompost.lifecycle
 
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.mustafadakhel.kompost.core.ProduceKey
-import com.mustafadakhel.kompost.android.lifecycle.activity.ActivityScopedFarm
-import com.mustafadakhel.kompost.android.lifecycle.activity.ApplicationRootActivitiesFarm
-import com.mustafadakhel.kompost.android.lifecycle.activity.activityScopedFarmOrNull
-import com.mustafadakhel.kompost.android.lifecycle.activity.createActivityScopedFarm
-import com.mustafadakhel.kompost.android.lifecycle.activity.getOrCreateActivityScopedFarm
+import com.mustafadakhel.kompost.lifecycle.activity.ActivityScopedFarm
+import com.mustafadakhel.kompost.lifecycle.activity.RootActivitiesFarm
+import com.mustafadakhel.kompost.lifecycle.activity.activityScopedFarmOrNull
+import com.mustafadakhel.kompost.lifecycle.activity.createActivityScopedFarm
+import com.mustafadakhel.kompost.lifecycle.activity.getOrCreateActivityScopedFarm
 import com.mustafadakhel.kompost.core.produce
 import com.mustafadakhel.kompost.core.resetGlobalFarm
 import com.mustafadakhel.kompost.core.supply
@@ -30,7 +30,7 @@ import kotlin.test.assertSame
 @Config(sdk = [Build.VERSION_CODES.O_MR1])
 class ActivityScopedFarmTests {
 
-    private val rootActivitiesFarm = mockk<ApplicationRootActivitiesFarm> {
+    private val rootActivitiesFarm = mockk<RootActivitiesFarm> {
         val activitiesFarms = hashMapOf<String, ActivityScopedFarm>()
         every {
             produce(

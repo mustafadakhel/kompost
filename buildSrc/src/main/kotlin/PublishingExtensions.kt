@@ -5,32 +5,32 @@ import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.kotlin.dsl.maybeCreate
-
+import org.gradle.kotlin.dsl.register
 
 fun PublicationContainer.kompostPublication(
     name: String,
     project: Project,
     from: () -> SoftwareComponent,
     artifacts: List<Jar>,
+    versionString: String,
     configure: MavenPublication.() -> Unit
-) = maybeCreate<MavenPublication>(name).apply {
+) = register<MavenPublication>(name) {
     project.afterEvaluate {
         from(from())
     }
 
-    artifacts.forEach { artifact(it) }
+    setArtifacts(artifacts)
 
-    groupId = project.group.toString()
-    artifactId = "${project.rootProject.name}-${project.name}"
-    version = project.rootProject.version.toString()
+    groupId = project.rootProject.group.toString()
+    artifactId = "${project.rootProject.name.lowercase()}-${project.name}"
+    version = versionString
 
     kompostPOM(project)
     configure()
 }
 
 fun MavenPublication.kompostPOM(project: Project) = pom {
-    name.set("${project.group}:${project.name}")
+    name.set("${project.rootProject.group}:${project.name}")
     description.set("Gardening-Inspired Scoping and DI")
     url.set("https://github.com/mustafadakhel/kompost")
 
@@ -41,18 +41,18 @@ fun MavenPublication.kompostPOM(project: Project) = pom {
         }
     }
 
+    scm {
+        connection.set("scm:git:git://github.com/mustafadakhel/kompost.git")
+        developerConnection.set("scm:git:ssh://github.com/mustafadakhel/kompost.git")
+        url.set("https://github.com/mustafadakhel/kompost")
+    }
+
     developers {
         developer {
             id.set("mustafadakhel")
             name.set("Mustafa M. Dakhel")
             email.set("mstfdakhel@gmail.com")
         }
-    }
-
-    scm {
-        connection.set("scm:git:git://github.com/mustafadakhel/kompost.git")
-        developerConnection.set("scm:git:ssh://github.com/mustafadakhel/kompost.git")
-        url.set("https://github.com/mustafadakhel/kompost")
     }
 }
 

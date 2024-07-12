@@ -1,7 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin
+    alias(libs.plugins.dokka)
 }
 
 java {
@@ -13,8 +15,8 @@ tasks {
     compileKotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_1_8)
+            explicitApiMode = ExplicitApiMode.Strict
             allWarningsAsErrors = true
-            freeCompilerArgs = listOf("-Xexplicit-api=strict")
         }
     }
 
@@ -32,3 +34,7 @@ dependencies {
 
 apply(plugin = "kompost.publish.kotlin")
 apply(plugin = "kompost.signing")
+
+tasks.dokkaJavadoc.configure {
+    outputDirectory.set(file("${layout.buildDirectory.get()}/dokka/javadoc"))
+}
