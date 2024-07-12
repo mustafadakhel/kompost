@@ -17,7 +17,14 @@ Planting your first seed is easy! Just follow the steps below and watch your dep
 
 ```kotlin
 dependencies {
-    project(":kompost")
+    // Core
+    implementation("com.mustafadakhel.kompost:kompost-core:1.1.0")
+
+    // Android application support 
+    implementation("com.mustafadakhel.kompost:kompost-android:1.1.0")
+
+    // Lifecycle support
+    implementation("com.mustafadakhel.kompost:kompost-lifecycle:1.1.0")
 }
 ```
 
@@ -40,8 +47,8 @@ private fun Application.kompostSampleApplicationFarm() = createApplicationFarm {
 ### Step 3: Set Up Activity and Fragment Farms
 
 ```kotlin
-fun ApplicationFarm.activities() = createActivityScopedFarm {
-    // Activity-scoped dependencies
+fun ApplicationFarm.activities() = createActivitiesFarm {
+    // Activities dependencies
     produce { ActivityRepository(supply()) }
 }
 
@@ -72,7 +79,7 @@ private fun Application.kompostSampleApplicationFarm() = createApplicationFarm {
 Dependencies tied to the lifecycle of an activity.
 
 ```kotlin
-fun ApplicationFarm.activities() = createActivityScopedFarm {
+fun ApplicationFarm.activities() = createActivitiesFarm {
     produce { ActivityRepository(supply()) }
 }
 ```
@@ -94,7 +101,7 @@ fun ComponentActivity.setupFragmentScopedFarm() = getOrCreateActivityScopedFarm 
 ViewModels with and without `SavedStateHandle`.
 
 ```kotlin
-fun ApplicationRootActivitiesFarm.viewModels() = createViewModelsFarm {
+fun RootActivitiesFarm.viewModels() = createViewModelsFarm {
     produce { MainViewModel(supply()) }
     produceViewModelWithSavedState { savedStateHandle ->
         MainViewModelWithSavedStateHandle(supply(), savedStateHandle)

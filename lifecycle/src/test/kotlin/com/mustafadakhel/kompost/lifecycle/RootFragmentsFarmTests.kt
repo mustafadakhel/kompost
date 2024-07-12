@@ -122,7 +122,7 @@ class RootFragmentsFarmTests {
     }
 
     @Test
-    fun `FragmentsFarm delegates to parent ApplicationRootActivitiesFarm when dependency not found locally`() {
+    fun `FragmentsFarm delegates to parent RootActivitiesFarm when dependency not found locally`() {
         val fragmentsFarm = rootActivitiesFarm.createRootFragmentsFarm()
 
         fragmentsFarm.supply<SomeDependency>()

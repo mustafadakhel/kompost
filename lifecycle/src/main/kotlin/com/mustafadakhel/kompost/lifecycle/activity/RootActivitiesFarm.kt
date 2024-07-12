@@ -31,7 +31,7 @@ private val ApplicationFarm.rootActivitiesFarmId: String
 
 /**
  * A constant that holds the name of the ActivitiesFarm.
- * This name is used as part of the unique identifier when generating a [ProduceKey] for the ApplicationRootActivitiesFarm.
+ * This name is used as part of the unique identifier when generating a [ProduceKey] for the [RootActivitiesFarm].
  */
 private const val ActivitiesFarmName = "ActivitiesFarm"
 

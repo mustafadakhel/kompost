@@ -202,8 +202,8 @@ public class ViewModelsFarm internal constructor(
 }
 
 /**
- * An extension function to get the ViewModelsFarm from an ApplicationRootActivitiesFarm.
- * This function retrieves the ViewModelsFarm from the ApplicationRootActivitiesFarm using the viewModelsFarmProduceKey.
+ * An extension function to get the ViewModelsFarm from an [RootActivitiesFarm].
+ * This function retrieves the ViewModelsFarm from the [RootActivitiesFarm] using the viewModelsFarmProduceKey.
  * If a ViewModelsFarm does not exist for the given ProduceKey, null is returned.
  *
  * @return The ViewModelsFarm if it exists, null otherwise.
@@ -238,10 +238,10 @@ public fun ComponentActivity.viewModelsFarm(): ViewModelsFarm {
 }
 
 /**
- * An extension function to create a ViewModelsFarm in an ApplicationRootActivitiesFarm.
+ * An extension function to create a ViewModelsFarm in an [RootActivitiesFarm].
  * This function checks if a ViewModelsFarm already exists using the viewModelsFarmOrNull function.
  * If a ViewModelsFarm already exists, an IllegalArgumentException is thrown.
- * If a ViewModelsFarm does not exist, a new ViewModelsFarm is created and added to the ApplicationRootActivitiesFarm.
+ * If a ViewModelsFarm does not exist, a new ViewModelsFarm is created and added to the [RootActivitiesFarm].
  * The function takes a lambda function as a parameter, which is used to set up the ViewModelsFarm.
  *
  * @param productionScope A lambda function that sets up the ViewModelsFarm.
