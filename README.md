@@ -18,13 +18,13 @@ Planting your first seed is easy! Just follow the steps below and watch your dep
 ```kotlin
 dependencies {
     // Core
-    implementation("com.mustafadakhel.kompost:kompost-core:1.1.0")
+    implementation("com.mustafadakhel.kompost:kompost-core:1.1.1")
 
     // Android application support 
-    implementation("com.mustafadakhel.kompost:kompost-android:1.1.0")
+    implementation("com.mustafadakhel.kompost:kompost-android:1.1.1")
 
     // Lifecycle support
-    implementation("com.mustafadakhel.kompost:kompost-lifecycle:1.1.0")
+    implementation("com.mustafadakhel.kompost:kompost-lifecycle:1.1.1")
 }
 ```
 
