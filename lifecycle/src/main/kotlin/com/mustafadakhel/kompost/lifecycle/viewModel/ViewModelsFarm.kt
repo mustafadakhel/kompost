@@ -56,7 +56,7 @@ private val RootActivitiesFarm.viewModelsFarmId: String
 private const val ViewModelsFarmName = "ViewModelsFarm"
 
 /**
- * The [ViewModelsFarm] class is responsible for managing the lifecycle of ViewModel dependencies in the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application.
+ * The [ViewModelsFarm] class is responsible for managing the lifecycle of ViewModel dependencies in the application.
  * It is a producer of ViewModels and uses the [DefaultProducer] class to manage the production of ViewModels.
  * The [ViewModelsFarm] class is created with an id and an instance of [RootActivitiesFarm].
  *

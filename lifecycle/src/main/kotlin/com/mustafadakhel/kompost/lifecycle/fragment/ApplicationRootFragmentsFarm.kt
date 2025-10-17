@@ -6,6 +6,7 @@ import com.mustafadakhel.kompost.core.ProduceKey
 import com.mustafadakhel.kompost.core.Producer
 import com.mustafadakhel.kompost.core.kompostLogger
 import com.mustafadakhel.kompost.core.producerOrNull
+import com.mustafadakhel.kompost.lifecycle.KompostLifecycleDsl
 import com.mustafadakhel.kompost.lifecycle.activity.RootActivitiesFarm
 import com.mustafadakhel.kompost.lifecycle.activity.rootActivitiesFarm
 
@@ -28,7 +29,7 @@ internal val RootActivitiesFarm.rootFragmentsFarmProduceKey: ProduceKey
 private const val ActivityRootFragmentsFarmName = "FragmentsFarm"
 
 /**
- * A class that represents the root fragments farm in the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application.
+ * A class that represents the root fragments farm in the application.
  * It is a producer that delegates its production responsibilities to a [DefaultProducer].
  * The [DefaultProducer] is created with an ID and the [RootActivitiesFarm] as its parent.
  *
@@ -53,7 +54,7 @@ public fun RootActivitiesFarm.rootFragmentsFarmOrNull(): ApplicationRootFragment
  * An internal function for the [RootActivitiesFarm] class that gets or creates a [ApplicationRootFragmentsFarm].
  *
  * The function first tries to get the existing [ApplicationRootFragmentsFarm] using the [rootFragmentsFarmOrNull] function.
- * If the [ApplicationRootFragmentsFarm] does not exist, it creates a new one using the [createRootFragmentsFarm] function.
+ * If the [ApplicationRootFragmentsFarm] does not exist, it creates a new one using the [createFragmentsFarm] function.
  * The [productionScope] parameter is a lambda with [ApplicationRootFragmentsFarm] as its receiver that is used to configure the new [ApplicationRootFragmentsFarm] if it is created. Default is an empty lambda.
  *
  * @param productionScope A lambda with [ApplicationRootFragmentsFarm] as its receiver that is used to configure the new [ApplicationRootFragmentsFarm] if it is created. Default is an empty lambda.
@@ -62,7 +63,7 @@ public fun RootActivitiesFarm.rootFragmentsFarmOrNull(): ApplicationRootFragment
 internal fun RootActivitiesFarm.getOrCreateFragmentsFarm(
     productionScope: ApplicationRootFragmentsFarm.() -> Unit = {}
 ): ApplicationRootFragmentsFarm {
-    return rootFragmentsFarmOrNull() ?: createRootFragmentsFarm(productionScope)
+    return rootFragmentsFarmOrNull() ?: createFragmentsFarm(productionScope)
 }
 
 /**
@@ -100,7 +101,8 @@ public class RootFragmentsFarmAlreadyExistsException :
  * @return The newly created root fragments farm.
  * @throws IllegalArgumentException if a root fragments farm already exists.
  */
-public fun RootActivitiesFarm.createRootFragmentsFarm(
+@KompostLifecycleDsl
+public fun RootActivitiesFarm.createFragmentsFarm(
     productionScope: ApplicationRootFragmentsFarm.() -> Unit = {}
 ): ApplicationRootFragmentsFarm {
     if (rootFragmentsFarmOrNull() != null)
