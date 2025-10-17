@@ -137,5 +137,126 @@ class ProducerTests {
         )
     }
 
+    @Test
+    fun `Farm detects direct circular dependencies`() {
+        // Create a circular dependency: A depends on A
+        defaultProducer.produce<SomeDependency> {
+            defaultProducer.supply<SomeDependency>()
+        }
+
+        val exception = assertFailsWith<CircularDependencyException>(
+            "CircularDependencyException should be thrown for direct circular dependency"
+        ) {
+            defaultProducer.supply<SomeDependency>()
+        }
+
+        assertNotNull(exception, "Exception should be thrown")
+        assertNotNull(exception.message, "Exception should have a message")
+    }
+
+    @Test
+    fun `Farm detects indirect circular dependencies`() {
+        // Create a circular dependency chain: A -> B -> A
+        defaultProducer.produce<SomeDependency> {
+            defaultProducer.supply<AnotherDependency>()
+            mockk<SomeDependency>()
+        }
+        defaultProducer.produce<AnotherDependency> {
+            defaultProducer.supply<SomeDependency>()
+            mockk<AnotherDependency>()
+        }
+
+        val exception = assertFailsWith<CircularDependencyException>(
+            "CircularDependencyException should be thrown for indirect circular dependency"
+        ) {
+            defaultProducer.supply<SomeDependency>()
+        }
+
+        assertNotNull(exception, "Exception should be thrown")
+        assertNotNull(exception.message, "Exception should have a message")
+    }
+
+    @Test
+    fun `supplyOrNull returns null for missing dependency`() {
+        val result = defaultProducer.supplyOrNull<SomeDependency>()
+
+        assertSame(null, result, "supplyOrNull should return null for missing dependency")
+    }
+
+    @Test
+    fun `supplyOrNull returns dependency when found`() {
+        val dependency: SomeDependency = mockk()
+        defaultProducer.produce { dependency }
+
+        val result = defaultProducer.supplyOrNull<SomeDependency>()
+
+        assertSame(dependency, result, "supplyOrNull should return the dependency when found")
+    }
+
+    @Test
+    fun `supplyOrDefault returns default for missing dependency`() {
+        val defaultDependency: SomeDependency = mockk()
+
+        val result = defaultProducer.supplyOrDefault(defaultValue = defaultDependency)
+
+        assertSame(
+            defaultDependency,
+            result,
+            "supplyOrDefault should return default value for missing dependency"
+        )
+    }
+
+    @Test
+    fun `supplyOrDefault returns dependency when found`() {
+        val dependency: SomeDependency = mockk()
+        val defaultDependency: SomeDependency = mockk()
+        defaultProducer.produce { dependency }
+
+        val result = defaultProducer.supplyOrDefault(defaultValue = defaultDependency)
+
+        assertSame(
+            dependency,
+            result,
+            "supplyOrDefault should return the found dependency, not the default"
+        )
+    }
+
+    @Test
+    fun `supplyOrElse computes fallback for missing dependency`() {
+        val fallbackDependency: SomeDependency = mockk()
+        var fallbackCalled = false
+
+        val result = defaultProducer.supplyOrElse<SomeDependency> {
+            fallbackCalled = true
+            fallbackDependency
+        }
+
+        assertSame(
+            fallbackDependency,
+            result,
+            "supplyOrElse should return fallback value for missing dependency"
+        )
+        assertSame(true, fallbackCalled, "Fallback lambda should be called")
+    }
+
+    @Test
+    fun `supplyOrElse returns dependency without calling fallback when found`() {
+        val dependency: SomeDependency = mockk()
+        var fallbackCalled = false
+        defaultProducer.produce { dependency }
+
+        val result = defaultProducer.supplyOrElse<SomeDependency> {
+            fallbackCalled = true
+            mockk()
+        }
+
+        assertSame(
+            dependency,
+            result,
+            "supplyOrElse should return the found dependency"
+        )
+        assertSame(false, fallbackCalled, "Fallback lambda should not be called when dependency is found")
+    }
+
 }
 

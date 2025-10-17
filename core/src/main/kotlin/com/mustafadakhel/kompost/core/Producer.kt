@@ -92,3 +92,100 @@ public inline fun <reified S> Producer.singleton(
     val key = ProduceKey(S::class, tag = tag)
     singleton(key, dependency)
 }
+
+/**
+ * Supplies a type of produce identified by the given [ProduceKey], or returns null if not found.
+ *
+ * This is a safe variant of [supply] that returns null instead of throwing [NoSuchSeedException]
+ * when the dependency is not found. Other exceptions (like [CircularDependencyException] or
+ * [CannotCastHarvestedSeedException]) are still thrown.
+ *
+ * @param S The type of the produce to supply.
+ * @param key The [ProduceKey] of the produce to supply.
+ * @return The supplied produce of type [S], or null if not found.
+ * @throws CircularDependencyException If a circular dependency is detected.
+ * @throws CannotCastHarvestedSeedException If the harvested produce cannot be cast to type [S].
+ */
+public fun <S> Producer.supplyOrNull(key: ProduceKey): S? {
+    return try {
+        supply(key)
+    } catch (e: NoSuchSeedException) {
+        null
+    }
+}
+
+/**
+ * Supplies a type of produce, or returns null if not found.
+ *
+ * This is a safe variant of [supply] that returns null instead of throwing [NoSuchSeedException]
+ * when the dependency is not found.
+ *
+ * @param S The type of the produce to supply.
+ * @param tag An optional tag to identify the produce. Defaults to null.
+ * @return The supplied produce of type [S], or null if not found.
+ */
+public inline fun <reified S> Producer.supplyOrNull(tag: String? = null): S? {
+    val key = ProduceKey(S::class, tag = tag)
+    return supplyOrNull(key)
+}
+
+/**
+ * Supplies a type of produce identified by the given [ProduceKey], or returns a default value if not found.
+ *
+ * @param S The type of the produce to supply.
+ * @param key The [ProduceKey] of the produce to supply.
+ * @param defaultValue The default value to return if the dependency is not found.
+ * @return The supplied produce of type [S], or [defaultValue] if not found.
+ */
+public fun <S> Producer.supplyOrDefault(key: ProduceKey, defaultValue: S): S {
+    return supplyOrNull(key) ?: defaultValue
+}
+
+/**
+ * Supplies a type of produce, or returns a default value if not found.
+ *
+ * @param S The type of the produce to supply.
+ * @param tag An optional tag to identify the produce. Defaults to null.
+ * @param defaultValue The default value to return if the dependency is not found.
+ * @return The supplied produce of type [S], or [defaultValue] if not found.
+ */
+public inline fun <reified S> Producer.supplyOrDefault(tag: String? = null, defaultValue: S): S {
+    val key = ProduceKey(S::class, tag = tag)
+    return supplyOrDefault(key, defaultValue)
+}
+
+/**
+ * Supplies a type of produce identified by the given [ProduceKey], or computes a fallback value if not found.
+ *
+ * @param S The type of the produce to supply.
+ * @param key The [ProduceKey] of the produce to supply.
+ * @param fallback A lambda that computes the fallback value if the dependency is not found.
+ * @return The supplied produce of type [S], or the result of [fallback] if not found.
+ */
+public inline fun <S> Producer.supplyOrElse(key: ProduceKey, fallback: () -> S): S {
+    return supplyOrNull(key) ?: fallback()
+}
+
+/**
+ * Supplies a type of produce, or computes a fallback value if not found.
+ *
+ * This function allows for lazy computation of the fallback value, which is only
+ * executed if the dependency is not found. This is useful for expensive operations
+ * or when the fallback requires additional context.
+ *
+ * Example:
+ * ```kotlin
+ * val config = farm.supplyOrElse<Config> {
+ *     loadDefaultConfig()
+ * }
+ * ```
+ *
+ * @param S The type of the produce to supply.
+ * @param tag An optional tag to identify the produce. Defaults to null.
+ * @param fallback A lambda that computes the fallback value if the dependency is not found.
+ * @return The supplied produce of type [S], or the result of [fallback] if not found.
+ */
+public inline fun <reified S> Producer.supplyOrElse(tag: String? = null, noinline fallback: () -> S): S {
+    val key = ProduceKey(S::class, tag = tag)
+    return supplyOrElse(key, fallback)
+}

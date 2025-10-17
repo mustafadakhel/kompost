@@ -55,11 +55,17 @@ public class DefaultProducer(override val id: String, override val parent: Produ
      * @param key The [ProduceKey] under which to add the new produce.
      * @param produce A function that produces an item of type [S]. This function is used to create the actual produce.
      * @throws DuplicateProduceException If a [SeedBed] for the given [ProduceKey] already exists in the [DefaultProducer].
+     * @throws IllegalArgumentException If the [ProduceKey] value is empty or blank.
      */
     override fun <S> produce(
         key: ProduceKey,
         produce: () -> S
     ) {
+        // Input validation
+        require(key.value.isNotBlank()) {
+            "ProduceKey value cannot be empty or blank. Received: '${key.value}'"
+        }
+
         kompostLogger.log("Producing $key in farm: $this")
         val seedBed = SeedBed(produce)
         if (seedBeds.containsKey(key.value)) {
