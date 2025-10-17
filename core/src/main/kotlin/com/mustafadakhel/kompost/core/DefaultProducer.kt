@@ -48,6 +48,14 @@ public class DefaultProducer(override val id: String, override val parent: Produ
     private val seedBeds = ConcurrentHashMap<String, SeedBed<*>>()
 
     /**
+     * Thread-local stack to track the current dependency resolution chain.
+     * Used to detect circular dependencies during supply operations.
+     */
+    private companion object {
+        private val dependencyStack = ThreadLocal.withInitial { mutableSetOf<ProduceKey>() }
+    }
+
+    /**
      * Produces a new type of produce and adds it to the [DefaultProducer].
      *
      * This function creates a new [SeedBed] with the given [produce] function and adds it to the [DefaultProducer] under the given [ProduceKey].
@@ -104,18 +112,31 @@ public class DefaultProducer(override val id: String, override val parent: Produ
      */
     @Suppress("UNCHECKED_CAST")
     override fun <S> supply(key: ProduceKey): S {
-        kompostLogger.log("Supplying $key from farm: $this")
-        val bed = seedBeds[key.value]
-        kompostLogger.log("Found $key in farm: $this: $bed")
-        if (bed == null) {
-            kompostLogger.log("Supplying $key from parent in farm: $this")
-            val produceFromParent: S? = parent?.supply(key)
-            kompostLogger.log("Supplied $key from parent in farm: $this: $produceFromParent")
-            return produceFromParent ?: throw NoSuchSeedException(key)
+        // Check for circular dependency
+        val stack = dependencyStack.get()
+        if (key in stack) {
+            throw CircularDependencyException(stack + key)
         }
-        val harvestedCrop = bed.harvest()
-        kompostLogger.log("Harvested $key in farm: $this: $harvestedCrop")
-        return harvestedCrop as? S ?: throw CannotCastHarvestedSeedException(key, harvestedCrop)
+
+        // Add current key to stack
+        stack.add(key)
+        try {
+            kompostLogger.log("Supplying $key from farm: $this")
+            val bed = seedBeds[key.value]
+            kompostLogger.log("Found $key in farm: $this: $bed")
+            if (bed == null) {
+                kompostLogger.log("Supplying $key from parent in farm: $this")
+                val produceFromParent: S? = parent?.supply(key)
+                kompostLogger.log("Supplied $key from parent in farm: $this: $produceFromParent")
+                return produceFromParent ?: throw NoSuchSeedException(key)
+            }
+            val harvestedCrop = bed.harvest()
+            kompostLogger.log("Harvested $key in farm: $this: $harvestedCrop")
+            return harvestedCrop as? S ?: throw CannotCastHarvestedSeedException(key, harvestedCrop)
+        } finally {
+            // Remove key from stack after successful supply
+            stack.remove(key)
+        }
     }
 
     /**
@@ -200,5 +221,36 @@ public class DuplicateProduceException(
 ) : Exception() {
     override val message: String = "An instance for $key has already been produced in this farm. " +
             "Make sure you are not producing the same dependency multiple times."
+}
 
+/**
+ * Represents an exception that is thrown when a circular dependency is detected.
+ *
+ * This exception is thrown when a [Producer] detects that a dependency is trying to supply itself,
+ * either directly or indirectly through a chain of dependencies. This prevents infinite loops
+ * and stack overflow errors.
+ *
+ * The dependency chain is stored in the [dependencyChain] property, which shows the path of
+ * dependencies that led to the circular reference.
+ *
+ * Example:
+ * ```
+ * produce<A> { A(supply<B>()) }
+ * produce<B> { B(supply<A>()) }
+ * // Throws: CircularDependencyException with chain: [A, B, A]
+ * ```
+ *
+ * @property dependencyChain The chain of dependencies that formed the circular reference.
+ * @constructor Creates a new instance of [CircularDependencyException].
+ */
+public class CircularDependencyException(
+    private val dependencyChain: Set<ProduceKey>
+) : Exception() {
+    override val message: String
+        get() {
+            val chain = dependencyChain.joinToString(" -> ")
+            return "Circular dependency detected: $chain\n" +
+                    "A dependency is trying to supply itself, either directly or through a chain of other dependencies. " +
+                    "Please review your dependency injection setup and break the circular reference."
+        }
 }
