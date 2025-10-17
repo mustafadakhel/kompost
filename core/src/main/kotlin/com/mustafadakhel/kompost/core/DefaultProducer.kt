@@ -2,6 +2,8 @@
 
 package com.mustafadakhel.kompost.core
 
+import java.util.concurrent.ConcurrentHashMap
+
 /**
  * Returns a [Producer] instance from the parent [Producer] if it contains the given [ProduceKey], or null otherwise.
  *
@@ -43,7 +45,7 @@ public fun <T : Producer> producerOrNull(parent: Producer, key: ProduceKey): T? 
 @KompostDsl
 public class DefaultProducer(override val id: String, override val parent: Producer? = null) :
     Producer {
-    private val seedBeds = mutableMapOf<String, SeedBed<*>>()
+    private val seedBeds = ConcurrentHashMap<String, SeedBed<*>>()
 
     /**
      * Produces a new type of produce and adds it to the [DefaultProducer].
