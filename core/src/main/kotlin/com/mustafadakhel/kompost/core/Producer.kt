@@ -14,6 +14,7 @@ package com.mustafadakhel.kompost.core
  * @function contains This function takes a [ProduceKey] and returns a Boolean indicating whether the [Producer] contains the type of produce associated with the [ProduceKey].
  * @function destroy This function takes a [ProduceKey] and destroys the type of produce associated with the [ProduceKey].
  * @function destroyAllCrops This function destroys all types of produce in the [Producer].
+ * @function getAllKeys This function returns all [ProduceKey]s registered in this [Producer] (excluding parent).
  */
 public interface Producer {
     public val id: String
@@ -23,6 +24,7 @@ public interface Producer {
     public fun contains(key: ProduceKey): Boolean
     public fun destroy(key: ProduceKey)
     public fun destroyAllCrops()
+    public fun getAllKeys(): Set<ProduceKey>
 }
 
 /**
@@ -188,4 +190,50 @@ public inline fun <S> Producer.supplyOrElse(key: ProduceKey, fallback: () -> S):
 public inline fun <reified S> Producer.supplyOrElse(tag: String? = null, noinline fallback: () -> S): S {
     val key = ProduceKey(S::class, tag = tag)
     return supplyOrElse(key, fallback)
+}
+
+/**
+ * Checks if this [Producer] contains a dependency of type [S] with an optional tag.
+ *
+ * This is a convenient reified version of [Producer.contains] that constructs the [ProduceKey]
+ * from the type parameter and optional tag.
+ *
+ * @param S The type of the produce to check for.
+ * @param tag An optional tag to identify the produce. Defaults to null.
+ * @return True if the dependency exists in this producer, false otherwise.
+ */
+public inline fun <reified S> Producer.contains(tag: String? = null): Boolean {
+    val key = ProduceKey(S::class, tag = tag)
+    return contains(key)
+}
+
+/**
+ * Returns all [ProduceKey]s registered in this [Producer] and all parent producers.
+ *
+ * This recursively collects keys from this producer and all parent producers up the hierarchy.
+ * Useful for debugging and understanding the full dependency graph available from this producer.
+ *
+ * @return A Set of all [ProduceKey]s available from this producer including parent keys.
+ */
+public fun Producer.getAllKeysIncludingParents(): Set<ProduceKey> {
+    val keys = mutableSetOf<ProduceKey>()
+    keys.addAll(getAllKeys())
+    parent?.let { keys.addAll(it.getAllKeysIncludingParents()) }
+    return keys
+}
+
+/**
+ * Returns a map representing the dependency graph structure.
+ *
+ * The map contains the producer ID as key and the set of [ProduceKey]s registered in that producer as value.
+ * This includes all producers in the hierarchy (this producer and all parents).
+ * Useful for debugging and visualizing the dependency injection structure.
+ *
+ * @return A Map of producer IDs to their registered [ProduceKey]s.
+ */
+public fun Producer.getDependencyGraph(): Map<String, Set<ProduceKey>> {
+    val graph = mutableMapOf<String, Set<ProduceKey>>()
+    graph[id] = getAllKeys()
+    parent?.let { graph.putAll(it.getDependencyGraph()) }
+    return graph
 }

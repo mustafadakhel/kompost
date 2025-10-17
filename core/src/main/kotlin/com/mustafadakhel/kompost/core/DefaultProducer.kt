@@ -43,7 +43,43 @@ public fun <T : Producer> producerOrNull(parent: Producer, key: ProduceKey): T? 
 @KompostDsl
 public class DefaultProducer(override val id: String, override val parent: Producer? = null) :
     Producer {
-    private val seedBeds = mutableMapOf<String, SeedBed<*>>()
+    private val seedBeds = java.util.concurrent.ConcurrentHashMap<ProduceKey, SeedBed<*>>()
+
+    internal companion object {
+        private val dependencyStack = ThreadLocal.withInitial { DependencyTracker() }
+        private const val MAX_DEPENDENCY_DEPTH = 50
+
+        @JvmStatic
+        internal fun clearDependencyTracker() {
+            dependencyStack.get().clear()
+        }
+    }
+
+    private class DependencyTracker {
+        private val stack = ArrayDeque<ProduceKey>()
+        private val seen = mutableSetOf<ProduceKey>()
+
+        fun push(key: ProduceKey) {
+            stack.addLast(key)
+            seen.add(key)
+        }
+
+        fun pop(key: ProduceKey) {
+            stack.removeLast()
+            seen.remove(key)
+        }
+
+        fun contains(key: ProduceKey): Boolean = seen.contains(key)
+
+        fun getChain(): List<ProduceKey> = stack.toList()
+
+        fun depth(): Int = stack.size
+
+        fun clear() {
+            stack.clear()
+            seen.clear()
+        }
+    }
 
     /**
      * Produces a new type of produce and adds it to the [DefaultProducer].
@@ -68,25 +104,25 @@ public class DefaultProducer(override val id: String, override val parent: Produ
 
         kompostLogger.log("Producing $key in farm: $this")
         val seedBed = SeedBed(produce)
-        if (seedBeds.containsKey(key.value)) {
+        if (seedBeds.containsKey(key)) {
             kompostLogger.log("Duplicate produce found for $key in farm: $this")
             throw DuplicateProduceException(key)
         }
         kompostLogger.log("Produced $key in farm: $this")
-        seedBeds[key.value] = seedBed
+        seedBeds[key] = seedBed
     }
 
     /**
      * Checks if the [DefaultProducer] contains a [SeedBed] for the given [ProduceKey].
      *
-     * This function checks if the [DefaultProducer] contains a [SeedBed] for the given [ProduceKey] by checking if the [seedBeds] map contains a key that matches the value of the [ProduceKey].
+     * This function checks if the [DefaultProducer] contains a [SeedBed] for the given [ProduceKey] by checking if the [seedBeds] map contains the [ProduceKey].
      *
      * @param key The [ProduceKey] of the [SeedBed] to check.
      * @return A Boolean indicating whether the [DefaultProducer] contains a [SeedBed] for the given [ProduceKey].
      */
     override fun contains(key: ProduceKey): Boolean {
         kompostLogger.log("Checking for $key in farm: $this")
-        val found = seedBeds.containsKey(key.value)
+        val found = seedBeds.containsKey(key)
         kompostLogger.log("Found $key in farm: $this: $found")
         return found
     }
@@ -109,7 +145,7 @@ public class DefaultProducer(override val id: String, override val parent: Produ
     @Suppress("UNCHECKED_CAST")
     override fun <S> supply(key: ProduceKey): S {
         kompostLogger.log("Supplying $key from farm: $this")
-        val bed = seedBeds[key.value]
+        val bed = seedBeds[key]
         kompostLogger.log("Found $key in farm: $this: $bed")
         if (bed == null) {
             kompostLogger.log("Supplying $key from parent in farm: $this")
@@ -132,7 +168,7 @@ public class DefaultProducer(override val id: String, override val parent: Produ
      */
     override fun destroy(key: ProduceKey) {
         kompostLogger.log("Destroying $key in farm: $this")
-        seedBeds.remove(key.value)
+        seedBeds.remove(key)
     }
 
     /**
@@ -144,6 +180,19 @@ public class DefaultProducer(override val id: String, override val parent: Produ
     override fun destroyAllCrops() {
         kompostLogger.log("Destroying all crops in farm: $this")
         seedBeds.clear()
+    }
+
+    /**
+     * Returns all [ProduceKey]s registered in this [DefaultProducer].
+     *
+     * This function retrieves all the keys from the [seedBeds] map.
+     * Note that this only returns keys from this producer, not from parent producers.
+     *
+     * @return A Set of all [ProduceKey]s registered in this [DefaultProducer].
+     */
+    override fun getAllKeys(): Set<ProduceKey> {
+        kompostLogger.log("Getting all keys from farm: $this")
+        return seedBeds.keys.toSet()
     }
 }
 

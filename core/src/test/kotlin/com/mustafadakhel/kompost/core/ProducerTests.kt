@@ -258,5 +258,123 @@ class ProducerTests {
         assertSame(false, fallbackCalled, "Fallback lambda should not be called when dependency is found")
     }
 
+    @Test
+    fun `getAllKeys returns all registered keys`() {
+        defaultProducer.produce<SomeDependency> { mockk() }
+        defaultProducer.produce<AnotherDependency>(tag = "tagged") { mockk() }
+
+        val keys = defaultProducer.getAllKeys()
+
+        assertSame(2, keys.size, "Should have 2 registered keys")
+        assertSame(
+            true,
+            keys.any { it.getClassName().contains("SomeDependency") },
+            "Should contain SomeDependency key"
+        )
+        assertSame(
+            true,
+            keys.any { it.getClassName().contains("AnotherDependency") && it.getTag() == "tagged" },
+            "Should contain tagged AnotherDependency key"
+        )
+    }
+
+    @Test
+    fun `getAllKeys returns empty set when no dependencies registered`() {
+        val keys = defaultProducer.getAllKeys()
+
+        assertSame(0, keys.size, "Should return empty set when no dependencies registered")
+    }
+
+    @Test
+    fun `getAllKeysIncludingParents returns keys from producer and parents`() {
+        val parentDependency: GlobalDependency = mockk()
+        defaultProducer.produce { parentDependency }
+
+        val childProducer = DefaultProducer("ChildFarm", defaultProducer)
+        childProducer.produce<SomeDependency> { mockk() }
+
+        val keys = childProducer.getAllKeysIncludingParents()
+
+        assertSame(
+            true,
+            keys.size >= 2,
+            "Should have at least 2 keys (child + parent)"
+        )
+        assertSame(
+            true,
+            keys.any { it.getClassName().contains("SomeDependency") },
+            "Should contain SomeDependency from child"
+        )
+        assertSame(
+            true,
+            keys.any { it.getClassName().contains("GlobalDependency") },
+            "Should contain GlobalDependency from parent"
+        )
+    }
+
+    @Test
+    fun `getDependencyGraph returns graph structure`() {
+        defaultProducer.produce<GlobalDependency> { mockk() }
+
+        val childProducer = DefaultProducer("ChildFarm", defaultProducer)
+        childProducer.produce<SomeDependency> { mockk() }
+
+        val graph = childProducer.getDependencyGraph()
+
+        assertSame(
+            true,
+            graph.containsKey("ChildFarm"),
+            "Graph should contain child farm"
+        )
+        assertSame(
+            true,
+            graph.containsKey("TestFarm"),
+            "Graph should contain parent farm"
+        )
+        assertSame(
+            true,
+            graph["ChildFarm"]?.any { it.getClassName().contains("SomeDependency") } == true,
+            "ChildFarm should have SomeDependency"
+        )
+        assertSame(
+            true,
+            graph["TestFarm"]?.any { it.getClassName().contains("GlobalDependency") } == true,
+            "TestFarm should have GlobalDependency"
+        )
+    }
+
+    @Test
+    fun `contains with reified type works correctly`() {
+        defaultProducer.produce<SomeDependency> { mockk() }
+
+        assertSame(true, defaultProducer.contains<SomeDependency>(), "Should contain SomeDependency")
+        assertSame(
+            false,
+            defaultProducer.contains<AnotherDependency>(),
+            "Should not contain AnotherDependency"
+        )
+    }
+
+    @Test
+    fun `contains with reified type and tag works correctly`() {
+        defaultProducer.produce<SomeDependency>(tag = "special") { mockk() }
+
+        assertSame(
+            true,
+            defaultProducer.contains<SomeDependency>(tag = "special"),
+            "Should contain SomeDependency with tag 'special'"
+        )
+        assertSame(
+            false,
+            defaultProducer.contains<SomeDependency>(tag = "other"),
+            "Should not contain SomeDependency with tag 'other'"
+        )
+        assertSame(
+            false,
+            defaultProducer.contains<SomeDependency>(),
+            "Should not contain untagged SomeDependency"
+        )
+    }
+
 }
 
