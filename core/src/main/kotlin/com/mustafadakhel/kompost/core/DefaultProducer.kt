@@ -142,6 +142,29 @@ public class DefaultProducer(override val id: String, override val parent: Produ
 }
 
 /**
+ * Base exception class for all Kompost-specific exceptions.
+ *
+ * This abstract class serves as the parent for all exceptions thrown by the Kompost library.
+ * It allows consumers to catch all Kompost-related exceptions with a single catch block,
+ * making error handling more convenient and providing semantic grouping of related errors.
+ *
+ * Example usage:
+ * ```kotlin
+ * try {
+ *     farm.supply<Dependency>()
+ * } catch (e: KompostException) {
+ *     // Handle any Kompost-related error
+ * }
+ * ```
+ *
+ * @constructor Creates a new instance of [KompostException] with the given message and optional cause.
+ */
+public abstract class KompostException(
+    message: String,
+    cause: Throwable? = null
+) : Exception(message, cause)
+
+/**
  * Represents an exception that is thrown when a dependency for a given [ProduceKey] is not found.
  *
  * This exception is thrown when a [Producer] tries to supply a produce for a given [ProduceKey], but the [Producer] does not contain a [SeedBed] for that [ProduceKey].
@@ -153,10 +176,10 @@ public class DefaultProducer(override val id: String, override val parent: Produ
  */
 public class NoSuchSeedException(
     private val key: ProduceKey
-) : Exception() {
-    override val message: String = "Dependency for $key not found. " +
+) : KompostException(
+    message = "Dependency for $key not found. " +
             "Make sure you have produced this dependency properly in your DI setup."
-}
+)
 
 /**
  * Represents an exception that is thrown when a harvested produce cannot be cast to the expected type.
@@ -172,16 +195,15 @@ public class NoSuchSeedException(
 public class CannotCastHarvestedSeedException(
     private val key: ProduceKey,
     private val harvestedCrop: Any?
-) : Exception() {
-    override val message: String
-        get() {
-            val harvestedCropClassName = harvestedCrop?.let {
-                it::class.qualifiedName ?: it::class.java.name
-            } ?: "unknown"
-            return "Dependency of type '$harvestedCropClassName' was found for '$key', " +
-                    "but could not be cast to the expected type. Check your type definitions and producers."
-        }
-}
+) : KompostException(
+    message = run {
+        val harvestedCropClassName = harvestedCrop?.let {
+            it::class.qualifiedName ?: it::class.java.name
+        } ?: "unknown"
+        "Dependency of type '$harvestedCropClassName' was found for '$key', " +
+                "but could not be cast to the expected type. Check your type definitions and producers."
+    }
+)
 
 /**
  * Represents an exception that is thrown when a duplicate produce is being produced in the [DefaultProducer].
@@ -195,8 +217,42 @@ public class CannotCastHarvestedSeedException(
  */
 public class DuplicateProduceException(
     private val key: ProduceKey,
-) : Exception() {
-    override val message: String = "An instance for $key has already been produced in this farm. " +
+) : KompostException(
+    message = "An instance for $key has already been produced in this farm. " +
             "Make sure you are not producing the same dependency multiple times."
+)
 
-}
+/**
+ * Represents an exception that is thrown when a circular dependency is detected.
+ *
+ * This exception is thrown when a [Producer] detects that a dependency is trying to supply itself,
+ * either directly or indirectly through a chain of dependencies. This prevents infinite loops
+ * and stack overflow errors.
+ *
+ * The dependency chain is stored in the [dependencyChain] property, which shows the path of
+ * dependencies that led to the circular reference.
+ *
+ * Example:
+ * ```
+ * produce<A> { A(supply<B>()) }
+ * produce<B> { B(supply<A>()) }
+ * // Throws: CircularDependencyException with chain: [A, B, A]
+ * ```
+ *
+ * @property dependencyChain The chain of dependencies that formed the circular reference.
+ * @property customMessage Optional custom error message to provide additional context.
+ * @constructor Creates a new instance of [CircularDependencyException].
+ */
+public class CircularDependencyException(
+    private val dependencyChain: Set<ProduceKey>,
+    private val customMessage: String? = null
+) : KompostException(
+    message = run {
+        val chain = dependencyChain.joinToString(" -> ")
+        val baseMessage = "Circular dependency detected: $chain"
+        val explanation = customMessage ?:
+            "A dependency is trying to supply itself, either directly or through a chain of other dependencies. " +
+            "Please review your dependency injection setup and break the circular reference."
+        "$baseMessage\n$explanation"
+    }
+)
