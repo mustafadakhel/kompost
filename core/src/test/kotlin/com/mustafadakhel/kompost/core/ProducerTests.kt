@@ -16,6 +16,7 @@ class ProducerTests {
     @BeforeTest
     fun setup() {
         resetGlobalFarm()
+        DefaultProducer.clearDependencyTracker()
     }
 
     @Test
@@ -135,6 +136,45 @@ class ProducerTests {
             dependency.param,
             "Dependency parameter should match the expected value"
         )
+    }
+
+    @Test
+    fun `Farm detects direct circular dependencies`() {
+        // Create a circular dependency: A depends on A
+        defaultProducer.produce<SomeDependency> {
+            defaultProducer.supply<SomeDependency>()
+        }
+
+        val exception = assertFailsWith<CircularDependencyException>(
+            "CircularDependencyException should be thrown for direct circular dependency"
+        ) {
+            defaultProducer.supply<SomeDependency>()
+        }
+
+        assertNotNull(exception, "Exception should be thrown")
+        assertNotNull(exception.message, "Exception should have a message")
+    }
+
+    @Test
+    fun `Farm detects indirect circular dependencies`() {
+        // Create a circular dependency chain: A -> B -> A
+        defaultProducer.produce<SomeDependency> {
+            defaultProducer.supply<AnotherDependency>()
+            mockk<SomeDependency>()
+        }
+        defaultProducer.produce<AnotherDependency> {
+            defaultProducer.supply<SomeDependency>()
+            mockk<AnotherDependency>()
+        }
+
+        val exception = assertFailsWith<CircularDependencyException>(
+            "CircularDependencyException should be thrown for indirect circular dependency"
+        ) {
+            defaultProducer.supply<SomeDependency>()
+        }
+
+        assertNotNull(exception, "Exception should be thrown")
+        assertNotNull(exception.message, "Exception should have a message")
     }
 
 }

@@ -48,11 +48,52 @@ public class DefaultProducer(override val id: String, override val parent: Produ
     private val seedBeds = ConcurrentHashMap<String, SeedBed<*>>()
 
     /**
-     * Thread-local stack to track the current dependency resolution chain.
-     * Used to detect circular dependencies during supply operations.
+     * Thread-local dependency tracker to detect circular dependencies during supply operations.
+     * Uses a hybrid approach with both a stack (for order) and a set (for fast lookups).
      */
-    private companion object {
-        private val dependencyStack = ThreadLocal.withInitial { mutableSetOf<ProduceKey>() }
+    internal companion object {
+        private val dependencyStack = ThreadLocal.withInitial { DependencyTracker() }
+        private const val MAX_DEPENDENCY_DEPTH = 50
+
+        /**
+         * Clears the dependency tracker for the current thread.
+         * This is primarily used for testing to ensure clean state between test runs.
+         * @suppress Internal API for testing purposes
+         */
+        @JvmStatic
+        internal fun clearDependencyTracker() {
+            dependencyStack.get().clear()
+        }
+    }
+
+    /**
+     * Tracks the current dependency resolution chain for circular dependency detection.
+     * Combines ArrayDeque for efficient stack operations with Set for O(1) membership checks.
+     */
+    private class DependencyTracker {
+        private val stack = ArrayDeque<ProduceKey>()
+        private val seen = mutableSetOf<ProduceKey>()
+
+        fun push(key: ProduceKey) {
+            stack.addLast(key)
+            seen.add(key)
+        }
+
+        fun pop(key: ProduceKey) {
+            stack.removeLast()
+            seen.remove(key)
+        }
+
+        fun contains(key: ProduceKey): Boolean = seen.contains(key)
+
+        fun getChain(): List<ProduceKey> = stack.toList()
+
+        fun depth(): Int = stack.size
+
+        fun clear() {
+            stack.clear()
+            seen.clear()
+        }
     }
 
     /**
@@ -112,30 +153,46 @@ public class DefaultProducer(override val id: String, override val parent: Produ
      */
     @Suppress("UNCHECKED_CAST")
     override fun <S> supply(key: ProduceKey): S {
-        // Check for circular dependency
-        val stack = dependencyStack.get()
-        if (key in stack) {
-            throw CircularDependencyException(stack + key)
+        val tracker = dependencyStack.get()
+
+        kompostLogger.log("Supplying $key from farm: $this")
+        val bed = seedBeds[key.value]
+        kompostLogger.log("Found $key in farm: $this: $bed")
+
+        if (bed == null) {
+            // Dependency not found locally, delegate to parent without circular check
+            // (parent delegation is not circular, it's hierarchical lookup)
+            kompostLogger.log("Supplying $key from parent in farm: $this")
+            val produceFromParent: S? = parent?.supply(key)
+            kompostLogger.log("Supplied $key from parent in farm: $this: $produceFromParent")
+            return produceFromParent ?: throw NoSuchSeedException(key)
         }
 
-        // Add current key to stack
-        stack.add(key)
+        // Depth limit safeguard to prevent runaway dependency chains
+        if (tracker.depth() >= MAX_DEPENDENCY_DEPTH) {
+            val chain = tracker.getChain() + key
+            throw CircularDependencyException(
+                dependencyChain = chain.toSet(),
+                customMessage = "Maximum dependency depth ($MAX_DEPENDENCY_DEPTH) exceeded. " +
+                        "This usually indicates a circular dependency or excessively deep dependency chain."
+            )
+        }
+
+        // Check for circular dependency before construction
+        if (tracker.contains(key)) {
+            val chain = tracker.getChain() + key
+            throw CircularDependencyException(chain.toSet())
+        }
+
+        // Add current key to tracker before constructing
+        tracker.push(key)
         try {
-            kompostLogger.log("Supplying $key from farm: $this")
-            val bed = seedBeds[key.value]
-            kompostLogger.log("Found $key in farm: $this: $bed")
-            if (bed == null) {
-                kompostLogger.log("Supplying $key from parent in farm: $this")
-                val produceFromParent: S? = parent?.supply(key)
-                kompostLogger.log("Supplied $key from parent in farm: $this: $produceFromParent")
-                return produceFromParent ?: throw NoSuchSeedException(key)
-            }
             val harvestedCrop = bed.harvest()
             kompostLogger.log("Harvested $key in farm: $this: $harvestedCrop")
             return harvestedCrop as? S ?: throw CannotCastHarvestedSeedException(key, harvestedCrop)
         } finally {
-            // Remove key from stack after successful supply
-            stack.remove(key)
+            // Remove key from tracker after successful supply
+            tracker.pop(key)
         }
     }
 
@@ -241,16 +298,20 @@ public class DuplicateProduceException(
  * ```
  *
  * @property dependencyChain The chain of dependencies that formed the circular reference.
+ * @property customMessage Optional custom error message to provide additional context.
  * @constructor Creates a new instance of [CircularDependencyException].
  */
 public class CircularDependencyException(
-    private val dependencyChain: Set<ProduceKey>
+    private val dependencyChain: Set<ProduceKey>,
+    private val customMessage: String? = null
 ) : Exception() {
     override val message: String
         get() {
             val chain = dependencyChain.joinToString(" -> ")
-            return "Circular dependency detected: $chain\n" +
-                    "A dependency is trying to supply itself, either directly or through a chain of other dependencies. " +
-                    "Please review your dependency injection setup and break the circular reference."
+            val baseMessage = "Circular dependency detected: $chain"
+            val explanation = customMessage ?:
+                "A dependency is trying to supply itself, either directly or through a chain of other dependencies. " +
+                "Please review your dependency injection setup and break the circular reference."
+            return "$baseMessage\n$explanation"
         }
 }
