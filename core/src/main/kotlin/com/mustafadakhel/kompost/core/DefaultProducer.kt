@@ -56,16 +56,16 @@ public class DefaultProducer(override val id: String, override val parent: Produ
     }
 
     private class DependencyTracker {
-        private val stack = ArrayDeque<ProduceKey>()
+        private val stack = mutableListOf<ProduceKey>()
         private val seen = mutableSetOf<ProduceKey>()
 
         fun push(key: ProduceKey) {
-            stack.addLast(key)
+            stack.add(key)
             seen.add(key)
         }
 
         fun pop(key: ProduceKey) {
-            stack.removeLast()
+            stack.removeAt(stack.size - 1)
             seen.remove(key)
         }
 
