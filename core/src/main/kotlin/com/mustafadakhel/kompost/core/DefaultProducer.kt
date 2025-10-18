@@ -2,6 +2,8 @@
 
 package com.mustafadakhel.kompost.core
 
+import java.util.concurrent.ConcurrentHashMap
+
 /**
  * Returns a [Producer] instance from the parent [Producer] if it contains the given [ProduceKey], or null otherwise.
  *
@@ -43,10 +45,12 @@ public fun <T : Producer> producerOrNull(parent: Producer, key: ProduceKey): T? 
 @KompostDsl
 public class DefaultProducer(override val id: String, override val parent: Producer? = null) :
     Producer {
-    private val seedBeds = java.util.concurrent.ConcurrentHashMap<ProduceKey, SeedBed<*>>()
+    private val seedBeds = ConcurrentHashMap<ProduceKey, SeedBed<*>>()
 
     internal companion object {
-        private val dependencyStack = ThreadLocal.withInitial { DependencyTracker() }
+        private val dependencyStack = object : ThreadLocal<DependencyTracker>() {
+            override fun initialValue(): DependencyTracker = DependencyTracker()
+        }
         private const val MAX_DEPENDENCY_DEPTH = 50
 
         @JvmStatic
