@@ -3,11 +3,24 @@ Welcome to Kompost, the scoping and dependency injection library named while I w
 
 ## Features
 
+### Scoping
 - **Application Scope**: Dependencies available to all other scopes within the application.
 - **Activity Scope**: Dependencies tied to the lifecycle of an activity.
 - **Fragment Scope**: Dependencies tied to the lifecycle of a fragment.
 - **ViewModel Scope**: Manage ViewModels with or without `SavedStateHandle`.
 - **Custom Scopes**: Flexible scopes to meet specific application needs.
+
+### Features
+- **Structured Logging**: Built-in logging with customizable levels and integration options.
+- **Unified Exception Hierarchy**: Catch all Kompost errors with `KompostException`
+- **Dependency Graph Introspection**: Tools to visualize and debug your dependency structure.
+- **Lightweight and Fast**: Minimal overhead for efficient dependency management.
+- **Kotlin First**: Designed with Kotlin's features in mind for a seamless experience.
+- **Android Support**: Tailored for Android applications with lifecycle-aware components.
+- **No Reflection**: Pure Kotlin implementation without reflection for better performance.
+- **Modular Design**: Core functionality separated from Android-specific features.
+- **Comprehensive Documentation**: Detailed guides and examples to get you started quickly.
+- **Circular Dependency Detection**: Prevents infinite loops with clear error messages
 
 ## Quick Start
 
@@ -18,13 +31,13 @@ Planting your first seed is easy! Just follow the steps below and watch your dep
 ```kotlin
 dependencies {
     // Core
-    implementation("com.mustafadakhel.kompost:kompost-core:1.1.1")
+    implementation("com.mustafadakhel.kompost:kompost-core:1.2.0")
 
-    // Android application support 
-    implementation("com.mustafadakhel.kompost:kompost-android:1.1.1")
+    // Android application support
+    implementation("com.mustafadakhel.kompost:kompost-android:1.2.0")
 
     // Lifecycle support
-    implementation("com.mustafadakhel.kompost:kompost-lifecycle:1.1.1")
+    implementation("com.mustafadakhel.kompost:kompost-lifecycle:1.2.0")
 }
 ```
 
@@ -126,7 +139,7 @@ fun Application.createCustomScopeFarm() {
 
 ## Scope Hierarchy
 
-Here’s a text diagram to show you how all these scopes stack up:
+Here's a text diagram to show you how all these scopes stack up:
 
 ```
 Application Scope
