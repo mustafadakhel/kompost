@@ -16,6 +16,7 @@ class ProducerTests {
     @BeforeTest
     fun setup() {
         resetGlobalFarm()
+        DefaultProducer.clearDependencyTracker()
     }
 
     @Test

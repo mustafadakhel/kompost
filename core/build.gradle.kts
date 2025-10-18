@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     kotlin
     alias(libs.plugins.dokka)
+    alias(libs.plugins.dokka.javadoc)
 }
 
 java {
@@ -35,6 +36,6 @@ dependencies {
 apply(plugin = "kompost.publish.kotlin")
 apply(plugin = "kompost.signing")
 
-tasks.dokkaJavadoc.configure {
-    outputDirectory.set(file("${layout.buildDirectory.get()}/dokka/javadoc"))
+tasks.named("dokkaGeneratePublicationJavadoc") {
+    outputs.dir(file("${layout.buildDirectory.get()}/dokka/javadoc"))
 }

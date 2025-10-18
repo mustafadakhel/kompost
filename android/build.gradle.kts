@@ -4,6 +4,7 @@ plugins {
     com.android.library
     `kotlin-android`
     alias(libs.plugins.dokka)
+    alias(libs.plugins.dokka.javadoc)
 }
 
 java {
@@ -13,7 +14,7 @@ java {
 
 android {
     namespace = "com.mustafadakhel.kompost.android"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 21
@@ -52,6 +53,6 @@ dependencies {
 apply(plugin = "kompost.publish.android")
 apply(plugin = "kompost.signing")
 
-tasks.dokkaJavadoc.configure {
-    outputDirectory.set(file("${layout.buildDirectory.get()}/dokka/javadoc"))
+tasks.named("dokkaGeneratePublicationJavadoc") {
+    outputs.dir(file("${layout.buildDirectory.get()}/dokka/javadoc"))
 }

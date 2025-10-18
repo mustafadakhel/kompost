@@ -10,8 +10,8 @@ val sourcesJar by tasks.registering(Jar::class) {
 
 val javadocJar by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")
-    dependsOn(tasks.named("dokkaJavadoc"))
-    from(tasks.named("dokkaJavadoc").get().outputs)
+    dependsOn(tasks.named("dokkaGeneratePublicationJavadoc"))
+    from(tasks.named("dokkaGeneratePublicationJavadoc").get().outputs)
 }
 
 tasks.withType<Jar> {
