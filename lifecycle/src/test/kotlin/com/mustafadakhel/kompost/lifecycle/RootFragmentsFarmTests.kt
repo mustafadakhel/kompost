@@ -7,7 +7,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.mustafadakhel.kompost.lifecycle.activity.RootActivitiesFarm
 import com.mustafadakhel.kompost.lifecycle.fragment.ApplicationRootFragmentsFarm
-import com.mustafadakhel.kompost.lifecycle.fragment.createFragmentsFarm
+import com.mustafadakhel.kompost.lifecycle.fragment.createRootFragmentsFarm
 import com.mustafadakhel.kompost.lifecycle.fragment.fragmentSupply
 import com.mustafadakhel.kompost.lifecycle.fragment.getOrCreateFragmentsFarm
 import com.mustafadakhel.kompost.lifecycle.fragment.rootFragmentsFarm
@@ -58,13 +58,13 @@ class RootFragmentsFarmTests {
 
     @Test
     fun `FragmentsFarm is created`() {
-        val fragmentsFarm = rootActivitiesFarm.createFragmentsFarm()
+        val fragmentsFarm = rootActivitiesFarm.createRootFragmentsFarm()
         assertNotNull(fragmentsFarm, "FragmentsFarm should be created and linked to the fragment")
     }
 
     @Test
     fun `Retrieving existing FragmentsFarm returns the same instance for the fragment`() {
-        val creation = rootActivitiesFarm.createFragmentsFarm()
+        val creation = rootActivitiesFarm.createRootFragmentsFarm()
 
         val retrieval = rootActivitiesFarm.getOrCreateFragmentsFarm()
 
@@ -80,7 +80,7 @@ class RootFragmentsFarmTests {
         val fragmentScenario = launchFragmentInContainer<Fragment>()
         val fragmentScenario2 = launchFragmentInContainer<Fragment>()
 
-        val rootFarm = rootActivitiesFarm.createFragmentsFarm {
+        val rootFarm = rootActivitiesFarm.createRootFragmentsFarm {
             produce<SomeDependency> { mockk() }
         }
 
@@ -123,7 +123,7 @@ class RootFragmentsFarmTests {
 
     @Test
     fun `FragmentsFarm delegates to parent RootActivitiesFarm when dependency not found locally`() {
-        val fragmentsFarm = rootActivitiesFarm.createFragmentsFarm()
+        val fragmentsFarm = rootActivitiesFarm.createRootFragmentsFarm()
 
         fragmentsFarm.supply<SomeDependency>()
 

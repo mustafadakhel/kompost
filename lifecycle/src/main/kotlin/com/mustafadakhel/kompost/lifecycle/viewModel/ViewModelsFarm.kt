@@ -21,42 +21,19 @@ import com.mustafadakhel.kompost.lifecycle.activity.RootActivitiesFarm
 import com.mustafadakhel.kompost.lifecycle.activity.rootActivitiesFarm
 import kotlin.reflect.KClass
 
-/**
- * An extension property for KClass<out ViewModel> to get a ProduceKey.
- * It generates a ProduceKey for the ViewModel KClass.
- *
- * @receiver The KClass of the ViewModel.
- * @return The generated ProduceKey.
- */
 private val KClass<out ViewModel>.viewModelProduceKey: ProduceKey
     get() = ProduceKey(this)
 
-/**
- * An extension property for [RootActivitiesFarm] to get a [ProduceKey].
- * It generates a [ProduceKey] for the [RootActivitiesFarm] with the class of the [RootActivitiesFarm] and the [viewModelsFarmId] as a tag
- *
- * @receiver The [RootActivitiesFarm] for which the ProduceKey is generated.
- * @return The generated ProduceKey.
- */
 private val RootActivitiesFarm.viewModelsFarmProduceKey: ProduceKey
     get() = ProduceKey(kClass = this::class, tag = viewModelsFarmId)
 
-/**
- * An extension property for [RootActivitiesFarm] to generate a unique identifier for [ViewModelsFarm].
- * This property concatenates the `id` of the [RootActivitiesFarm] and the constant [ViewModelsFarmName] to form a unique identifier.
- * This identifier is used when creating a [ProduceKey] for [ViewModelsFarm].
- */
 private val RootActivitiesFarm.viewModelsFarmId: String
     get() = "$id$ViewModelsFarmName"
 
-/**
- * A constant that holds the name of the [ViewModelsFarm] class.
- * This name is used as part of the unique identifier when generating a [ProduceKey] for the [ViewModelsFarm].
- */
 private const val ViewModelsFarmName = "ViewModelsFarm"
 
 /**
- * The [ViewModelsFarm] class is responsible for managing the lifecycle of ViewModel dependencies in the application.
+ * The [ViewModelsFarm] class is responsible for managing the lifecycle of ViewModel dependencies in the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application.
  * It is a producer of ViewModels and uses the [DefaultProducer] class to manage the production of ViewModels.
  * The [ViewModelsFarm] class is created with an id and an instance of [RootActivitiesFarm].
  *
@@ -70,28 +47,17 @@ public class ViewModelsFarm internal constructor(
     rootActivitiesFarm: RootActivitiesFarm,
 ) : Producer by DefaultProducer(id = id, parent = rootActivitiesFarm) {
 
-    /**
-     * Lazy property for the ViewModelProvider.Factory used to create ViewModels.
-     */
     internal val factory by lazy { viewModelFactory() }
 
-    /**
-     * A mutable map that holds instances of ViewModelWithSavedStateSeedBed.
-     * The key is a String, and the value is an instance of ViewModelWithSavedStateSeedBed.
-     * This map is used to store and retrieve ViewModelWithSavedStateSeedBed instances for different ViewModels.
-     */
     private val viewModelWithSavedStateSeedBeds =
-        mutableMapOf<String, ViewModelWithSavedStateSeedBed<*>>()
+        java.util.concurrent.ConcurrentHashMap<ProduceKey, ViewModelWithSavedStateSeedBed<*>>()
 
-    /**
-     * Creates a ViewModelProvider.Factory for creating ViewModels.
-     */
     private fun viewModelFactory(): ViewModelProvider.Factory {
         return object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
                 val key = modelClass.kotlin.viewModelProduceKey
                 kompostLogger.log("Creating ViewModel: $key")
-                if (viewModelWithSavedStateSeedBeds.containsKey(key.value)) {
+                if (viewModelWithSavedStateSeedBeds.containsKey(key)) {
                     kompostLogger.log("Creating ViewModel with SavedState: $key")
                     return supplyViewModelWithSavedState(key, extras)
                 }
@@ -135,32 +101,20 @@ public class ViewModelsFarm internal constructor(
         val seedBed = ViewModelWithSavedStateSeedBed { savedStateHandle ->
             produce(savedStateHandle)
         }
-        if (viewModelWithSavedStateSeedBeds.containsKey(key.value)) {
+        if (viewModelWithSavedStateSeedBeds.containsKey(key)) {
             kompostLogger.log("ViewModel with SavedState already exists: $key")
             throw DuplicateProduceException(key)
         }
         kompostLogger.log("Producing ViewModel with SavedState: $key")
-        viewModelWithSavedStateSeedBeds[key.value] = seedBed
+        viewModelWithSavedStateSeedBeds[key] = seedBed
     }
 
-    /**
-     * Function to supply a ViewModel with a SavedStateHandle.
-     * This function takes a ProduceKey and CreationExtras as parameters.
-     * The function retrieves the ViewModelWithSavedStateSeedBed from the viewModelWithSavedStateSeedBeds map using the ProduceKey.
-     * If a ViewModelWithSavedStateSeedBed does not exist for the given ProduceKey, a NoSuchSeedException is thrown.
-     * The function then calls the harvest function on the ViewModelWithSavedStateSeedBed with the CreationExtras to create the ViewModel.
-     * If the created ViewModel cannot be cast to the expected type, a CannotCastHarvestedSeedException is thrown.
-     *
-     * @param key The ProduceKey for the ViewModel.
-     * @param extras The CreationExtras used to create the ViewModel.
-     * @return The created ViewModel.
-     */
     @Suppress("UNCHECKED_CAST")
     private fun <VM : ViewModel> supplyViewModelWithSavedState(
         key: ProduceKey,
         extras: CreationExtras,
     ): VM {
-        val bed = viewModelWithSavedStateSeedBeds[key.value]
+        val bed = viewModelWithSavedStateSeedBeds[key]
             ?: throw NoSuchSeedException(key)
         kompostLogger.log("Harvesting ViewModel with SavedState: $key")
         val harvestedCrop = bed.harvest(extras)
@@ -169,15 +123,6 @@ public class ViewModelsFarm internal constructor(
             ?: throw CannotCastHarvestedSeedException(key, harvestedCrop)
     }
 
-    /**
-     * A class for creating a ViewModel SeedBed with a SavedStateHandle.
-     * This class takes a lambda function as a parameter in its constructor.
-     * The lambda function should take a SavedStateHandle as a parameter and return an instance of the ViewModel.
-     * The class has a lazy property for a ViewModelWithSavedStateCrop, which is created using the lambda function.
-     * The class also has a harvest function that calls the harvest function on the ViewModelWithSavedStateCrop with the CreationExtras to create the ViewModel.
-     *
-     * @param seed A lambda function that takes a SavedStateHandle as a parameter and returns an instance of the ViewModel.
-     */
     private class ViewModelWithSavedStateSeedBed<VM : ViewModel>(
         seed: (savedStateHandle: SavedStateHandle) -> VM
     ) {
@@ -185,14 +130,6 @@ public class ViewModelsFarm internal constructor(
 
         fun harvest(extras: CreationExtras) = crop.harvest(extras)
 
-        /**
-         * A class for creating a ViewModel with a SavedStateHandle.
-         * This class takes a lambda function as a parameter in its constructor.
-         * The lambda function should take a SavedStateHandle as a parameter and return an instance of the ViewModel.
-         * The class has a harvest function that calls the lambda function with the SavedStateHandle created from the CreationExtras to create the ViewModel.
-         *
-         * @param seed A lambda function that takes a SavedStateHandle as a parameter and returns an instance of the ViewModel.
-         */
         class ViewModelWithSavedStateCrop<VM : ViewModel>(
             private val seed: (savedStateHandle: SavedStateHandle) -> VM
         ) {

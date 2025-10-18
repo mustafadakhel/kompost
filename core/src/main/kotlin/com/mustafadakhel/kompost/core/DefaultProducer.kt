@@ -2,8 +2,6 @@
 
 package com.mustafadakhel.kompost.core
 
-import java.util.concurrent.ConcurrentHashMap
-
 /**
  * Returns a [Producer] instance from the parent [Producer] if it contains the given [ProduceKey], or null otherwise.
  *
@@ -45,31 +43,18 @@ public fun <T : Producer> producerOrNull(parent: Producer, key: ProduceKey): T? 
 @KompostDsl
 public class DefaultProducer(override val id: String, override val parent: Producer? = null) :
     Producer {
-    private val seedBeds = ConcurrentHashMap<String, SeedBed<*>>()
+    private val seedBeds = java.util.concurrent.ConcurrentHashMap<ProduceKey, SeedBed<*>>()
 
-    /**
-     * Thread-local dependency tracker to detect circular dependencies during supply operations.
-     * Uses a hybrid approach with both a stack (for order) and a set (for fast lookups).
-     */
     internal companion object {
         private val dependencyStack = ThreadLocal.withInitial { DependencyTracker() }
         private const val MAX_DEPENDENCY_DEPTH = 50
 
-        /**
-         * Clears the dependency tracker for the current thread.
-         * This is primarily used for testing to ensure clean state between test runs.
-         * @suppress Internal API for testing purposes
-         */
         @JvmStatic
         internal fun clearDependencyTracker() {
             dependencyStack.get().clear()
         }
     }
 
-    /**
-     * Tracks the current dependency resolution chain for circular dependency detection.
-     * Combines ArrayDeque for efficient stack operations with Set for O(1) membership checks.
-     */
     private class DependencyTracker {
         private val stack = ArrayDeque<ProduceKey>()
         private val seen = mutableSetOf<ProduceKey>()
@@ -106,32 +91,38 @@ public class DefaultProducer(override val id: String, override val parent: Produ
      * @param key The [ProduceKey] under which to add the new produce.
      * @param produce A function that produces an item of type [S]. This function is used to create the actual produce.
      * @throws DuplicateProduceException If a [SeedBed] for the given [ProduceKey] already exists in the [DefaultProducer].
+     * @throws IllegalArgumentException If the [ProduceKey] value is empty or blank.
      */
     override fun <S> produce(
         key: ProduceKey,
         produce: () -> S
     ) {
+        // Input validation
+        require(key.value.isNotBlank()) {
+            "ProduceKey value cannot be empty or blank. Received: '${key.value}'"
+        }
+
         kompostLogger.log("Producing $key in farm: $this")
         val seedBed = SeedBed(produce)
-        if (seedBeds.containsKey(key.value)) {
+        if (seedBeds.containsKey(key)) {
             kompostLogger.log("Duplicate produce found for $key in farm: $this")
             throw DuplicateProduceException(key)
         }
         kompostLogger.log("Produced $key in farm: $this")
-        seedBeds[key.value] = seedBed
+        seedBeds[key] = seedBed
     }
 
     /**
      * Checks if the [DefaultProducer] contains a [SeedBed] for the given [ProduceKey].
      *
-     * This function checks if the [DefaultProducer] contains a [SeedBed] for the given [ProduceKey] by checking if the [seedBeds] map contains a key that matches the value of the [ProduceKey].
+     * This function checks if the [DefaultProducer] contains a [SeedBed] for the given [ProduceKey] by checking if the [seedBeds] map contains the [ProduceKey].
      *
      * @param key The [ProduceKey] of the [SeedBed] to check.
      * @return A Boolean indicating whether the [DefaultProducer] contains a [SeedBed] for the given [ProduceKey].
      */
     override fun contains(key: ProduceKey): Boolean {
         kompostLogger.log("Checking for $key in farm: $this")
-        val found = seedBeds.containsKey(key.value)
+        val found = seedBeds.containsKey(key)
         kompostLogger.log("Found $key in farm: $this: $found")
         return found
     }
@@ -153,47 +144,18 @@ public class DefaultProducer(override val id: String, override val parent: Produ
      */
     @Suppress("UNCHECKED_CAST")
     override fun <S> supply(key: ProduceKey): S {
-        val tracker = dependencyStack.get()
-
         kompostLogger.log("Supplying $key from farm: $this")
-        val bed = seedBeds[key.value]
+        val bed = seedBeds[key]
         kompostLogger.log("Found $key in farm: $this: $bed")
-
         if (bed == null) {
-            // Dependency not found locally, delegate to parent without circular check
-            // (parent delegation is not circular, it's hierarchical lookup)
             kompostLogger.log("Supplying $key from parent in farm: $this")
             val produceFromParent: S? = parent?.supply(key)
             kompostLogger.log("Supplied $key from parent in farm: $this: $produceFromParent")
             return produceFromParent ?: throw NoSuchSeedException(key)
         }
-
-        // Depth limit safeguard to prevent runaway dependency chains
-        if (tracker.depth() >= MAX_DEPENDENCY_DEPTH) {
-            val chain = tracker.getChain() + key
-            throw CircularDependencyException(
-                dependencyChain = chain.toSet(),
-                customMessage = "Maximum dependency depth ($MAX_DEPENDENCY_DEPTH) exceeded. " +
-                        "This usually indicates a circular dependency or excessively deep dependency chain."
-            )
-        }
-
-        // Check for circular dependency before construction
-        if (tracker.contains(key)) {
-            val chain = tracker.getChain() + key
-            throw CircularDependencyException(chain.toSet())
-        }
-
-        // Add current key to tracker before constructing
-        tracker.push(key)
-        try {
-            val harvestedCrop = bed.harvest()
-            kompostLogger.log("Harvested $key in farm: $this: $harvestedCrop")
-            return harvestedCrop as? S ?: throw CannotCastHarvestedSeedException(key, harvestedCrop)
-        } finally {
-            // Remove key from tracker after successful supply
-            tracker.pop(key)
-        }
+        val harvestedCrop = bed.harvest()
+        kompostLogger.log("Harvested $key in farm: $this: $harvestedCrop")
+        return harvestedCrop as? S ?: throw CannotCastHarvestedSeedException(key, harvestedCrop)
     }
 
     /**
@@ -206,7 +168,7 @@ public class DefaultProducer(override val id: String, override val parent: Produ
      */
     override fun destroy(key: ProduceKey) {
         kompostLogger.log("Destroying $key in farm: $this")
-        seedBeds.remove(key.value)
+        seedBeds.remove(key)
     }
 
     /**
@@ -219,7 +181,43 @@ public class DefaultProducer(override val id: String, override val parent: Produ
         kompostLogger.log("Destroying all crops in farm: $this")
         seedBeds.clear()
     }
+
+    /**
+     * Returns all [ProduceKey]s registered in this [DefaultProducer].
+     *
+     * This function retrieves all the keys from the [seedBeds] map.
+     * Note that this only returns keys from this producer, not from parent producers.
+     *
+     * @return A Set of all [ProduceKey]s registered in this [DefaultProducer].
+     */
+    override fun getAllKeys(): Set<ProduceKey> {
+        kompostLogger.log("Getting all keys from farm: $this")
+        return seedBeds.keys.toSet()
+    }
 }
+
+/**
+ * Base exception class for all Kompost-specific exceptions.
+ *
+ * This abstract class serves as the parent for all exceptions thrown by the Kompost library.
+ * It allows consumers to catch all Kompost-related exceptions with a single catch block,
+ * making error handling more convenient and providing semantic grouping of related errors.
+ *
+ * Example usage:
+ * ```kotlin
+ * try {
+ *     farm.supply<Dependency>()
+ * } catch (e: KompostException) {
+ *     // Handle any Kompost-related error
+ * }
+ * ```
+ *
+ * @constructor Creates a new instance of [KompostException] with the given message and optional cause.
+ */
+public abstract class KompostException(
+    message: String,
+    cause: Throwable? = null
+) : Exception(message, cause)
 
 /**
  * Represents an exception that is thrown when a dependency for a given [ProduceKey] is not found.
@@ -233,10 +231,10 @@ public class DefaultProducer(override val id: String, override val parent: Produ
  */
 public class NoSuchSeedException(
     private val key: ProduceKey
-) : Exception() {
-    override val message: String = "Dependency for $key not found. " +
+) : KompostException(
+    message = "Dependency for $key not found. " +
             "Make sure you have produced this dependency properly in your DI setup."
-}
+)
 
 /**
  * Represents an exception that is thrown when a harvested produce cannot be cast to the expected type.
@@ -252,16 +250,15 @@ public class NoSuchSeedException(
 public class CannotCastHarvestedSeedException(
     private val key: ProduceKey,
     private val harvestedCrop: Any?
-) : Exception() {
-    override val message: String
-        get() {
-            val harvestedCropClassName = harvestedCrop?.let {
-                it::class.qualifiedName ?: it::class.java.name
-            } ?: "unknown"
-            return "Dependency of type '$harvestedCropClassName' was found for '$key', " +
-                    "but could not be cast to the expected type. Check your type definitions and producers."
-        }
-}
+) : KompostException(
+    message = run {
+        val harvestedCropClassName = harvestedCrop?.let {
+            it::class.qualifiedName ?: it::class.java.name
+        } ?: "unknown"
+        "Dependency of type '$harvestedCropClassName' was found for '$key', " +
+                "but could not be cast to the expected type. Check your type definitions and producers."
+    }
+)
 
 /**
  * Represents an exception that is thrown when a duplicate produce is being produced in the [DefaultProducer].
@@ -275,10 +272,10 @@ public class CannotCastHarvestedSeedException(
  */
 public class DuplicateProduceException(
     private val key: ProduceKey,
-) : Exception() {
-    override val message: String = "An instance for $key has already been produced in this farm. " +
+) : KompostException(
+    message = "An instance for $key has already been produced in this farm. " +
             "Make sure you are not producing the same dependency multiple times."
-}
+)
 
 /**
  * Represents an exception that is thrown when a circular dependency is detected.
@@ -304,14 +301,13 @@ public class DuplicateProduceException(
 public class CircularDependencyException(
     private val dependencyChain: Set<ProduceKey>,
     private val customMessage: String? = null
-) : Exception() {
-    override val message: String
-        get() {
-            val chain = dependencyChain.joinToString(" -> ")
-            val baseMessage = "Circular dependency detected: $chain"
-            val explanation = customMessage ?:
-                "A dependency is trying to supply itself, either directly or through a chain of other dependencies. " +
-                "Please review your dependency injection setup and break the circular reference."
-            return "$baseMessage\n$explanation"
-        }
-}
+) : KompostException(
+    message = run {
+        val chain = dependencyChain.joinToString(" -> ")
+        val baseMessage = "Circular dependency detected: $chain"
+        val explanation = customMessage ?:
+            "A dependency is trying to supply itself, either directly or through a chain of other dependencies. " +
+            "Please review your dependency injection setup and break the circular reference."
+        "$baseMessage\n$explanation"
+    }
+)

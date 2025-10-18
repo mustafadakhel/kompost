@@ -36,7 +36,7 @@ private val ApplicationFarm.rootActivitiesFarmId: String
 private const val ActivitiesFarmName = "ActivitiesFarm"
 
 /**
- * A class that represents the root activities farm in the application.
+ * A class that represents the root activities farm in the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application.
  * It is a producer that delegates its production responsibilities to a [DefaultProducer].
  * The [DefaultProducer] is created with an ID that is the ID of the root activities farm in the [ApplicationFarm].
  * The [DefaultProducer] is also associated with the [ApplicationFarm] as its parent.
@@ -75,7 +75,7 @@ internal fun ApplicationFarm.rootActivitiesFarmOrNull(): RootActivitiesFarm? =
 
 /**
  * An extension function for [ComponentActivity] that retrieves the existing root activities farm.
- * The function first retrieves the [ApplicationFarm] associated with the application of the [ComponentActivity].
+ * The function first retrieves the [ApplicationFarm] associated with the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application of the [ComponentActivity].
  * Then, it uses the [rootActivitiesFarmOrNull] extension function to retrieve the root activities farm.
  * If the root activities farm does not exist, the function throws an error.
  *
@@ -117,18 +117,6 @@ public fun ApplicationFarm.createActivitiesFarm(
         .apply(productionScope)
         .also {
             val key = rootActivitiesFarmProduceKey
-            produce(key) { it }
-        }
-}
-
-public fun Producer.createFarm(
-    id: String,
-    productionScope: Producer.() -> Unit = {}
-): Producer {
-    return DefaultProducer(id = id, parent = this)
-        .apply(productionScope)
-        .also {
-            val key = ProduceKey(DefaultProducer::class, tag = id)
             produce(key) { it }
         }
 }

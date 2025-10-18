@@ -8,7 +8,6 @@ import com.mustafadakhel.kompost.core.ProduceKey
 import com.mustafadakhel.kompost.core.Producer
 import com.mustafadakhel.kompost.core.kompostLogger
 import com.mustafadakhel.kompost.core.producerOrNull
-import kotlin.reflect.KClass
 
 /**
  * An extension property for [ComponentActivity] to get the [ProduceKey] for the [ActivityScopedFarm].
@@ -16,15 +15,15 @@ import kotlin.reflect.KClass
  * This key is used to identify the [ActivityScopedFarm] associated with the [ComponentActivity].
  */
 internal val ComponentActivity.activityScopedFarmProduceKey: ProduceKey
-    get() = ProduceKey(this::class, tag = this::class.farmId)
+    get() = ProduceKey(this::class, tag = farmId)
 
 /**
- * An extension property for [KClass] of [ComponentActivity] to get the farm ID for the [ActivityScopedFarm].
- * The farm ID is a unique identifier for the [ActivityScopedFarm] associated with the [ComponentActivity] class.
- * It is created by concatenating the name of the [ActivityScopedFarm] and the canonical name of the activity class.
+ * An extension property for [ComponentActivity] to get the farm ID for the [ActivityScopedFarm] associated with the [ComponentActivity].
+ * The farm ID is a unique identifier for the [ActivityScopedFarm] associated with the [ComponentActivity].
+ * It is created by concatenating the name of the [ActivityScopedFarm] and the hash code of the [ComponentActivity].
  */
-internal val KClass<out ComponentActivity>.farmId: String
-    get() = "$ActivityScopedFarmName.${this.java.canonicalName}"
+internal val ComponentActivity.farmId: String
+    get() = "$ActivityScopedFarmName.${this.hashCode()}"
 
 /**
  * A constant that holds the name of the ActivityScopedFarm. This name is used as part of the unique identifier for each ActivityScopedFarm instance.
@@ -32,21 +31,18 @@ internal val KClass<out ComponentActivity>.farmId: String
 private const val ActivityScopedFarmName = "ActivityScopedFarm"
 
 /**
- * A class that represents an [ActivityScopedFarm] which is a type of [Producer].
- * It is constructed with a [KClass] of [ComponentActivity] and a [RootActivitiesFarm].
- * The [ActivityScopedFarm] is identified by the farmId of the activity class and is a child of the [RootActivitiesFarm].
+ * The [ActivityScopedFarm] class is responsible for managing the lifecycle of activity-scoped dependencies in the com.mustafadakhel.kompost.android.com.mustafadakhel.kompost.android.application.
+ * It is a producer of activity-scoped dependencies and uses the [DefaultProducer] class to manage the production of these dependencies.
+ * The [ActivityScopedFarm] class is created with an activity and an instance of [RootActivitiesFarm].
  *
- * This farm manages dependencies that are scoped to a specific activity class.
- * All instances of the same activity class share the same [ActivityScopedFarm].
- *
- * @param activityClass The [KClass] of the [ComponentActivity] associated with this [ActivityScopedFarm].
- * @param activitiesFarm The [RootActivitiesFarm] that is the parent of this [ActivityScopedFarm].
+ * @param activity The [ComponentActivity] that this [ActivityScopedFarm] is associated with.
+ * @param activitiesFarm The [RootActivitiesFarm] that this [ActivityScopedFarm] belongs to.
  * @constructor Creates a new instance of [ActivityScopedFarm].
  */
 public class ActivityScopedFarm internal constructor(
-    activityClass: KClass<out ComponentActivity>,
+    activity: ComponentActivity,
     activitiesFarm: RootActivitiesFarm
-) : Producer by DefaultProducer(id = activityClass.farmId, parent = activitiesFarm)
+) : Producer by DefaultProducer(id = activity.farmId, parent = activitiesFarm)
 
 /**
  * An extension function for [ComponentActivity] that retrieves the existing [ActivityScopedFarm].
@@ -61,25 +57,21 @@ public fun ComponentActivity.activityScopedFarmOrNull(
 ): ActivityScopedFarm? = producerOrNull(activitiesFarm, activityScopedFarmProduceKey)
 
 /**
- * An extension function for [ComponentActivity] that either retrieves an existing [ActivityScopedFarm] or creates a new one.
- * The function first tries to retrieve an existing [ActivityScopedFarm] using the [activityScopedFarmOrNull] function.
- * If an existing [ActivityScopedFarm] is not found, a new one is created using the [createActivityScopedFarm] function.
- * The [productionScope] parameter is a lambda with [ActivityScopedFarm] as its receiver that is used to configure the [ActivityScopedFarm].
- * The [productionScope] is only used when a new [ActivityScopedFarm] is created.
- * The [activitiesFarm] parameter is an instance of [RootActivitiesFarm] which is used to retrieve or create the [ActivityScopedFarm].
+ * An extension function to get or create an [ActivityScopedFarm] for a [ComponentActivity].
+ * This function retrieves the [ActivityScopedFarm] from the [RootActivitiesFarm] using the [activityScopedFarmProduceKey].
+ * If an [ActivityScopedFarm] does not exist, a new one is created and added to the [RootActivitiesFarm].
+ * The function takes a lambda function as a parameter, which is used to set up the [ActivityScopedFarm].
  *
- * @param activitiesFarm An instance of [RootActivitiesFarm] which is used to retrieve or create the [ActivityScopedFarm]. Default value is the root activities farm.
- * @param productionScope A lambda with [ActivityScopedFarm] as its receiver that is used to configure the [ActivityScopedFarm]. Default value is an empty lambda.
- * @return The existing or newly created [ActivityScopedFarm].
+ * @param activitiesFarm The [RootActivitiesFarm] to retrieve or add the [ActivityScopedFarm] to.
+ * @param productionScope A lambda function that sets up the [ActivityScopedFarm].
+ * @return The retrieved or created [ActivityScopedFarm].
  */
 internal fun ComponentActivity.getOrCreateActivityScopedFarm(
     activitiesFarm: RootActivitiesFarm = rootActivitiesFarm(),
     productionScope: ActivityScopedFarm.() -> Unit = {}
 ): ActivityScopedFarm {
-    return activityScopedFarmOrNull(activitiesFarm) ?: createActivityScopedFarm(
-        activitiesFarm,
-        productionScope
-    )
+    return producerOrNull(activitiesFarm, activityScopedFarmProduceKey)
+        ?: createActivityScopedFarm(activitiesFarm, productionScope)
 }
 
 /**
@@ -89,17 +81,16 @@ public class ActivityScopedFarmAlreadyExistsException :
     IllegalStateException("Activity farm already exists")
 
 /**
- * An extension function for the [ComponentActivity] class that creates a new [ActivityScopedFarm].
- * The function first checks if an [ActivityScopedFarm] already exists for the [ComponentActivity] using the [activityScopedFarmOrNull] function.
- * If an [ActivityScopedFarm] already exists, the function throws an [ActivityScopedFarmAlreadyExistsException].
- * If an [ActivityScopedFarm] does not exist, a new one is created using the [ActivityScopedFarm] constructor.
- * The new [ActivityScopedFarm] is then configured using the [productionScope] parameter, which is a lambda with [ActivityScopedFarm] as its receiver.
- * After the [ActivityScopedFarm] is created and configured, it is added to the [RootActivitiesFarm] associated with the [ComponentActivity].
+ * An extension function to create an [ActivityScopedFarm] for a [ComponentActivity].
+ * This function checks if an [ActivityScopedFarm] already exists using the [activityScopedFarmOrNull] function.
+ * If an [ActivityScopedFarm] already exists, an [ActivityScopedFarmAlreadyExistsException] is thrown.
+ * If an [ActivityScopedFarm] does not exist, a new one is created and added to the [RootActivitiesFarm].
+ * The function takes a lambda function as a parameter, which is used to set up the [ActivityScopedFarm].
  *
- * @param activitiesFarm An instance of [RootActivitiesFarm] which is used to retrieve or create the [ActivityScopedFarm]. Default value is the root activities farm.
- * @param productionScope A lambda with [ActivityScopedFarm] as its receiver that is used to configure the [ActivityScopedFarm].
- * @return The newly created [ActivityScopedFarm].
- * @throws ActivityScopedFarmAlreadyExistsException If an [ActivityScopedFarm] already exists for the [ComponentActivity].
+ * @param activitiesFarm The [RootActivitiesFarm] to add the [ActivityScopedFarm] to.
+ * @param productionScope A lambda function that sets up the [ActivityScopedFarm].
+ * @return The created [ActivityScopedFarm].
+ * @throws ActivityScopedFarmAlreadyExistsException if an [ActivityScopedFarm] already exists.
  */
 internal fun ComponentActivity.createActivityScopedFarm(
     activitiesFarm: RootActivitiesFarm = rootActivitiesFarm(),
@@ -107,8 +98,7 @@ internal fun ComponentActivity.createActivityScopedFarm(
 ): ActivityScopedFarm {
     if (activityScopedFarmOrNull(activitiesFarm) != null)
         throw ActivityScopedFarmAlreadyExistsException()
-    kompostLogger.log("Creating activity farm for $this")
-    return ActivityScopedFarm(this::class, activitiesFarm)
+    return ActivityScopedFarm(this, activitiesFarm)
         .apply(productionScope)
         .also {
             activitiesFarm.produceActivityScopedFarm(
