@@ -147,15 +147,43 @@ public class DefaultProducer(override val id: String, override val parent: Produ
         kompostLogger.log("Supplying $key from farm: $this")
         val bed = seedBeds[key]
         kompostLogger.log("Found $key in farm: $this: $bed")
+
         if (bed == null) {
+            // If we don't have the seed bed, delegate to parent without tracking
             kompostLogger.log("Supplying $key from parent in farm: $this")
             val produceFromParent: S? = parent?.supply(key)
             kompostLogger.log("Supplied $key from parent in farm: $this: $produceFromParent")
             return produceFromParent ?: throw NoSuchSeedException(key)
         }
-        val harvestedCrop = bed.harvest()
-        kompostLogger.log("Harvested $key in farm: $this: $harvestedCrop")
-        return harvestedCrop as? S ?: throw CannotCastHarvestedSeedException(key, harvestedCrop)
+
+        // We have the seed bed, so track this dependency before harvesting
+        val tracker = dependencyStack.get()
+
+        // Check for circular dependencies
+        if (tracker.contains(key)) {
+            val chain = tracker.getChain() + key
+            throw CircularDependencyException(chain.toSet())
+        }
+
+        // Check dependency depth
+        if (tracker.depth() >= MAX_DEPENDENCY_DEPTH) {
+            val chain = tracker.getChain() + key
+            throw CircularDependencyException(
+                chain.toSet(),
+                "Maximum dependency depth of $MAX_DEPENDENCY_DEPTH exceeded. This might indicate a circular dependency."
+            )
+        }
+
+        // Track this dependency while harvesting
+        tracker.push(key)
+        try {
+            val harvestedCrop = bed.harvest()
+            kompostLogger.log("Harvested $key in farm: $this: $harvestedCrop")
+            return harvestedCrop as? S ?: throw CannotCastHarvestedSeedException(key, harvestedCrop)
+        } finally {
+            // Always pop the key from the tracker, even if an exception occurred
+            tracker.pop(key)
+        }
     }
 
     /**
