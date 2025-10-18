@@ -224,7 +224,7 @@ public class DefaultProducer(override val id: String, override val parent: Produ
      */
     override fun getAllKeys(): Set<ProduceKey> {
         kompostLogger.log("Getting all keys from farm: $this")
-        return seedBeds.keys.toSet()
+        return seedBeds.keys().toList().toSet()
     }
 }
 
