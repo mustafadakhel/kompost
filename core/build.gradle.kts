@@ -1,10 +1,12 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinJvm
 import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin
     alias(libs.plugins.dokka)
-    alias(libs.plugins.dokka.javadoc)
+    id("com.vanniktech.maven.publish")
 }
 
 java {
@@ -33,9 +35,43 @@ dependencies {
     testImplementation(libs.kotlin.test.junit)
 }
 
-apply(plugin = "kompost.publish.kotlin")
-apply(plugin = "kompost.signing")
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
 
-tasks.named("dokkaGeneratePublicationJavadoc") {
-    outputs.dir(file("${layout.buildDirectory.get()}/dokka/javadoc"))
+    configure(
+        KotlinJvm(
+            javadocJar = JavadocJar.Empty(),
+            sourcesJar = true
+        )
+    )
+
+    coordinates(rootProject.group as String, "kompost-${project.name}", rootProject.version as String)
+
+    pom {
+        name.set("Kompost ${project.name}")
+        description.set("Gardening-Inspired Scoping and DI")
+        url.set("https://github.com/mustafadakhel/kompost")
+
+        licenses {
+            license {
+                name.set("The Apache Software License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+
+        scm {
+            connection.set("scm:git:git://github.com/mustafadakhel/kompost.git")
+            developerConnection.set("scm:git:ssh://github.com/mustafadakhel/kompost.git")
+            url.set("https://github.com/mustafadakhel/kompost")
+        }
+
+        developers {
+            developer {
+                id.set("mustafadakhel")
+                name.set("Mustafa M. Dakhel")
+                email.set("mstfdakhel@gmail.com")
+            }
+        }
+    }
 }
